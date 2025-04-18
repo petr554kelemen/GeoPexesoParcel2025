@@ -1,0 +1,103 @@
+{
+    "paths": {
+        "goClovicek": {
+            "type": "Path",
+            "x": 100,
+            "y": 100,
+            "autoClose": false,
+            "curves": [
+                {
+                    "type": "CubicBezierCurve",
+                    "points": [
+                        200,
+                        450,
+                        250,
+                        500,
+                        298,
+                        490,
+                        333,
+                        490
+                    ]
+                },
+                {
+                    "type": "CubicBezierCurve",
+                    "points": [
+                        333,
+                        490,
+                        356,
+                        491,
+                        391,
+                        490,
+                        420,
+                        497
+                    ]
+                },
+                {
+                    "type": "CubicBezierCurve",
+                    "points": [
+                        420,
+                        497,
+                        439.25,
+                        503,
+                        477.75,
+                        515,
+                        497,
+                        521
+                    ]
+                },
+                {
+                    "type": "CubicBezierCurve",
+                    "points": [
+                        497,
+                        521,
+                        531,
+                        527,
+                        577,
+                        526,
+                        601,
+                        523
+                    ]
+                },
+                {
+                    "type": "CubicBezierCurve",
+                    "points": [
+                        601,
+                        523,
+                        607.25,
+                        522.25,
+                        619.75,
+                        520.75,
+                        626,
+                        520
+                    ]
+                },
+                {
+                    "type": "CubicBezierCurve",
+                    "points": [
+                        626,
+                        520,
+                        643.5,
+                        523.75,
+                        678.5,
+                        531.25,
+                        696,
+                        535
+                    ]
+                },
+                {
+                    "type": "CubicBezierCurve",
+                    "points": [
+                        696,
+                        535,
+                        625,
+                        558,
+                        546,
+                        624,
+                        479,
+                        647
+                    ]
+                }
+            ]
+        }
+    }
+}

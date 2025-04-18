@@ -1,0 +1,164 @@
+{
+    "frames": [
+        {
+            "filename": "clovicek_9",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 0,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_10",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 110,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_11",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 0,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_13",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 110,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_15",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 220,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_16",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 220,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_17",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 0,
+                "y": 280
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_18",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 110,
+                "y": 280
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_20",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 220,
+                "y": 280
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_21",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 330,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_22",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 330,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_23",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 330,
+                "y": 280
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        }
+    ],
+    "meta": {
+        "description": "Atlas generado con Atlas Packer Gamma V2",
+        "web": "https://gammafp.github.io/atlas-packer-phaser/"
+    }
+}
