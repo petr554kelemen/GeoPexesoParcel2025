@@ -1,132 +1,124 @@
 export default class Game extends Phaser.Scene {
-	constructor() {
-		super("Game");
-		this.myPath = null;
-		this.clovicek = null;
-		this.chlapik = null;
-	}
+    constructor() {
+        super("Game");
+        this.chlapik = null;
+        this.bedna = null;
+    }
 
-	preload() {
-		this.load.json('myPathsData', 'assets/simple-path.json');
-		this.load.spritesheet('clovicek-sprite', 'assets/animace/clovicek_jde.png', { frameWidth: 110, frameHeight: 140 });
-		this.load.image('bedna-sprite', "assets/krabička.png");
-		this.load.atlas('clovicek-tlaci', 'assets/animace/clovicek_tlaci.png','assets/animace/clovicek_tlaci.json');
-	}
+    preload() {
+        this.load.atlas('clovicek-jde-atlas', 'assets/animace/clovicek_jde.png', 'assets/animace/clovicek_jde_atlas.json');
+        this.load.atlas('clovicek-tlaci-sprite', 'assets/animace/clovicek_tlaci.png', 'assets/animace/clovicek_tlaci.json');
+        this.load.image('bedna-sprite', 'assets/bedna.png'); // Předpokládám, že máš obrázek bedny
+        this.load.image('backgroundGame', 'assets/images/freepikBackground.png'); // Předpokládám, že máš pozadí
+    }
 
-	editorCreate() {
-		const background = this.add.image(510, 384, "backgroundGame");
-		background.scaleX = 0.8784867183713885;
-		background.scaleY = 0.9624751673844308;
+    create() {
+        // 1. Inicializace pozadí
+        this.add.image(this.scale.width / 2, this.scale.height / 2, 'backgroundGame');
 
-		const text = this.add.text(512, 384, "zde bude vyhodnocení", {
-			align: "center",
-			color: "#ffffff",
-			fontFamily: "Arial Black",
-			fontSize: "38px",
-			stroke: "#000000",
-			strokeThickness: 8
-		});
+        // 2. Umístění chlapíka na počáteční pozici
+        this.chlapik = this.physics.add.sprite(100, this.scale.height - 100, 'clovicek-jde-atlas').setOrigin(0.5, 1);
+        this.chlapik.setBodySize(110, 140).setOffset(-25, -100); // Uprav si body size podle potřeby
 
-		this.events.emit("scene-awake");
-	}
+        // Vytvoření animací (chůze, tlačení, konečná)
+        this.createAnimations();
 
-	create() {
-		const pathsData = this.cache.json.get('myPathsData');
-		this.myPath = pathsData.paths.simplePath;
+        // 4. Umístění bedny mimo obrazovku
+        this.bedna = this.physics.add.sprite(-50, this.scale.height - 150, 'bedna-sprite').setOrigin(0.5, 1);
+        this.bedna.setImmovable(true); // Na začátku je bedna nehybná
 
-		if (!this.anims.exists('animace-chuze')) {
-			this.anims.create({
-				key: 'animace-chuze',
-				frames: this.anims.generateFrameNumbers('clovicek-sprite', { start: 0, end: 7 }),
-				frameRate: 8,
-				repeat: -1, // Přehrávání v cyklu
-				timescale: 1
-			});
-		}
+        // 3. Pohyb chlapíka mimo obrazovku
+        this.moveChlapikOffscreen();
+    }
 
-			if (!this.anims.exists('animace-tlaku')) {
-			this.anims.create({
-				key: 'animace-tlaku',
-				frames: 'clovicek-tlaci',
-				frameRate: 10,
-				repeat: -1, // Přehrávání v cyklu
-				timescale: 1
-			});
-		}
+    createAnimations() {
+        const atlasData = this.cache.json.get('clovicek-jde-atlas'); // Získání načtených dat z atlasu
 
-		// Vytvoření pozadí
-		this.editorCreate();
+        // Funkce pro extrahování názvů snímků pro daný rozsah
+        const getFrames = (start, end, prefix = 'clovicek_') => {
+            const frames = [];
+            for (let i = start; i <= end; i++) {
+                const filename = `${prefix}${i}`;
+                const frameData = atlasData.frames.find(f => f.filename === filename);
+                if (frameData) {
+                    frames.push({ key: 'clovicek-jde-atlas', frame: filename });
+                }
+            }
+            return frames;
+        };
 
-		// Nastavení a spuštění fyziky
-		this.chlapik = this.physics.add.sprite(this.myPath.points[0].x, this.myPath.points[0].y, 'clovicek-sprite');
-		this.bedna = this.physics.add.sprite(500, 500, 'bedna-sprite');
-		this.bedna.scale = 0.1;
+        this.anims.create({
+            key: 'animace-chuze',
+            frames: getFrames(1, 10, "clovicek_"),
+            frameRate: 8,
+            repeat: -1
+        });
 
-		// Nastavení hloubky vykreslování
-		this.bedna.setDepth(1);
-		this.chlapik.setDepth(2);
+        this.anims.create({
+            key: 'animace-tlaceni',
+            frames: this.anims.generateFrameNumbers('clovicek-tlaci-atlas', { start: 0, end: 10 }), // Uprav si rozsah snímků
+            frameRate: 8,
+            repeat: -1
+        });
 
-		this.chlapik.setBodySize(100, 140);
-		this.bedna.setBodySize(150, 150);
+        this.anims.create({
+            key: 'animace-konec',
+            frames: this.anims.generateFrameNumbers('clovicek-tlaci-sprite', { start: 10, end: 11 }), // Uprav si rozsah snímků
+            frameRate: 4,
+            repeat: 0
+        });
+    }
 
-		this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
+    moveChlapikOffscreen() {
+        this.chlapik.play('animace-chuze');
+        this.tweens.add({
+            targets: this.chlapik,
+            x: -50, // Pohyb mimo levou stranu obrazovky
+            duration: 3000,
+            ease: 'Linear',
+            onComplete: () => {
+                this.moveChlapikToBedna();
+            }
+        });
+    }
 
-		// Nastavení vlastností fyzikálních objektů
-		this.chlapik.setCollideWorldBounds(true);
-		//this.bedna.setImmovable(true);
+    moveChlapikToBedna() {
+        this.chlapik.flipX = true; // Otočí chlapíka
+        this.tweens.add({
+            targets: this.chlapik,
+            x: this.bedna.x + 100, // Pohyb k bedně
+            duration: 2000,
+            ease: 'Linear',
+            onComplete: () => {
+                this.startPushing();
+            }
+        });
+    }
 
-		//tlaceni bedny
-		this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
+    startPushing() {
+        this.chlapik.play('animace-tlaceni');
+        this.bedna.setImmovable(false); // Bedna už není nehybná
 
-    	// Nastavení, že bedna může být tlačena
-    	this.bedna.setImmovable(false);
+        this.physics.add.collider(this.chlapik, this.bedna); // Aktivujeme kolizi
 
-		if (this.myPath && Array.isArray(this.myPath.points) && this.myPath.points.length > 1) {
-			this.chlapik.play('animace-chuze');
+        this.tweens.add({
+            targets: [this.chlapik, this.bedna],
+            x: this.scale.width / 2,
+            duration: 5000,
+            ease: 'Linear',
+            onComplete: () => {
+                this.stopAnimation();
+            }
+        });
+    }
 
-			this.pathIndex = 1; // Začneme od druhého bodu na dráze
+    stopAnimation() {
+        this.chlapik.body.setVelocityX(0);
+        this.bedna.body.setVelocityX(0);
+        this.chlapik.play('animace-konec');
+    }
 
-		} else {
-			console.warn('Cesta v JSONu neobsahuje alespoň dva body.');
-		}
-
-		this.input.once('pointerdown', () => {
-			this.scene.start('GameOver');
-		});
-	}
-
-	handleCollision(chlapik, bedna) {
-		chlapik.body.setVelocity(0); // Zastavení pohybu "chlapíka"
-		chlapik.play('animace-tlaku'); // Přehrání animace tlačení
-	}
-
-	update() {
-		if (this.myPath && this.myPath.points && this.pathIndex < this.myPath.points.length) {
-			const targetPoint = this.myPath.points[this.pathIndex];
-
-			// Pohyb "chlapíka" k cílovému bodu
-			this.physics.moveToObject(this.chlapik, targetPoint, 60);
-
-			// Kontrola, zda "chlapík" dosáhl cílového bodu
-			const distance = Phaser.Math.Distance.Between(this.chlapik.x, this.chlapik.y, targetPoint.x, targetPoint.y);
-			if (distance < 5) {
-				this.pathIndex++;
-			}
-		} else {
-			// Zastavení pohybu a přehrání animace dřepu
-			if (this.chlapik && this.chlapik.body.speed > 0) {
-				this.chlapik.body.setVelocity(0);
-				this.chlapik.play('animace-tlaku');
-				this.chlapik.body.setVelocity(3);
-			}
-		}
-
-		// Přehrání animace chůze, pokud se "chlapík" pohybuje
-		if (this.chlapik && this.chlapik.body.speed > 0) {
-			console.log('Chlapík se pohybuje!'); // Ověření detekce pohybu
-			if (this.chlapik.anims.currentAnim.key !== 'animace-chuze') {
-				this.chlapik.play('animace-chuze');
-			}
-		}
-	}
+    update(time, delta) {
+        // Sem můžeš přidat další logiku, pokud bude potřeba
+    }
 }

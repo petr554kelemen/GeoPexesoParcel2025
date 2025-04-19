@@ -1,7 +1,6 @@
-{
-    "frames": [
+{"frames": [
         {
-            "filename": "clovicek_9",
+            "filename": "clovicek_1",
             "frame": {
                 "w": 110,
                 "h": 140,
@@ -14,11 +13,115 @@
             }
         },
         {
-            "filename": "clovicek_10",
+            "filename": "clovicek_2",
             "frame": {
                 "w": 110,
                 "h": 140,
                 "x": 110,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_3",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 0,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_4",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 110,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_5",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 220,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_6",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 220,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_7",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 0,
+                "y": 280
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_8",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 110,
+                "y": 280
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_9",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 220,
+                "y": 280
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "clovicek_10",
+            "frame": {
+                "w": 110,
+                "h": 140,
+                "x": 330,
                 "y": 0
             },
             "anchor": {
@@ -31,110 +134,6 @@
             "frame": {
                 "w": 110,
                 "h": 140,
-                "x": 0,
-                "y": 140
-            },
-            "anchor": {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
-        {
-            "filename": "clovicek_13",
-            "frame": {
-                "w": 110,
-                "h": 140,
-                "x": 110,
-                "y": 140
-            },
-            "anchor": {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
-        {
-            "filename": "clovicek_15",
-            "frame": {
-                "w": 110,
-                "h": 140,
-                "x": 220,
-                "y": 0
-            },
-            "anchor": {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
-        {
-            "filename": "clovicek_16",
-            "frame": {
-                "w": 110,
-                "h": 140,
-                "x": 220,
-                "y": 140
-            },
-            "anchor": {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
-        {
-            "filename": "clovicek_17",
-            "frame": {
-                "w": 110,
-                "h": 140,
-                "x": 0,
-                "y": 280
-            },
-            "anchor": {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
-        {
-            "filename": "clovicek_18",
-            "frame": {
-                "w": 110,
-                "h": 140,
-                "x": 110,
-                "y": 280
-            },
-            "anchor": {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
-        {
-            "filename": "clovicek_20",
-            "frame": {
-                "w": 110,
-                "h": 140,
-                "x": 220,
-                "y": 280
-            },
-            "anchor": {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
-        {
-            "filename": "clovicek_21",
-            "frame": {
-                "w": 110,
-                "h": 140,
-                "x": 330,
-                "y": 0
-            },
-            "anchor": {
-                "x": 0.5,
-                "y": 0.5
-            }
-        },
-        {
-            "filename": "clovicek_22",
-            "frame": {
-                "w": 110,
-                "h": 140,
                 "x": 330,
                 "y": 140
             },
@@ -144,7 +143,7 @@
             }
         },
         {
-            "filename": "clovicek_23",
+            "filename": "clovicek_12",
             "frame": {
                 "w": 110,
                 "h": 140,
