@@ -1,0 +1,170 @@
+{
+    "section1": {
+        "files": [
+            {
+                "url": "assets/images/Pic01.png",
+                "frameConfig": {
+                    "frameWidth": 85,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic01"
+            },
+            {
+                "url": "assets/images/Pic02.png",
+                "frameConfig": {
+                    "frameWidth": 85,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic02"
+            },
+            {
+                "url": "assets/images/Pic03.png",
+                "frameConfig": {
+                    "frameWidth": 85,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic03"
+            },
+            {
+                "url": "assets/images/Pic04.png",
+                "frameConfig": {
+                    "frameWidth": 85,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic04"
+            },
+            {
+                "url": "assets/images/Pic05.png",
+                "frameConfig": {
+                    "frameWidth": 85,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic05"
+            },
+            {
+                "url": "assets/images/Pic06.png",
+                "frameConfig": {
+                    "frameWidth": 50,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic06"
+            },
+            {
+                "url": "assets/images/Pic06a.png",
+                "frameConfig": {
+                    "frameWidth": 50,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic06a"
+            },
+            {
+                "url": "assets/images/Pic07.png",
+                "frameConfig": {
+                    "frameWidth": 50,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic07"
+            },
+            {
+                "url": "assets/images/Pic08.png",
+                "frameConfig": {
+                    "frameWidth": 85,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic08"
+            },
+            {
+                "url": "assets/images/Pic09.png",
+                "frameConfig": {
+                    "frameWidth": 50,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic09"
+            },
+            {
+                "url": "assets/images/Pic10.png",
+                "frameConfig": {
+                    "frameWidth": 50,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic10"
+            },
+            {
+                "url": "assets/images/Pic11.png",
+                "frameConfig": {
+                    "frameWidth": 50,
+                    "frameHeight": 120,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Pic11"
+            }
+        ]
+    },
+    "meta": {
+        "app": "Phaser Editor 2D - Asset Pack Editor",
+        "contentType": "phasereditor2d.pack.core.AssetContentType",
+        "url": "https://phasereditor2d.com",
+        "version": 2,
+        "showAllFilesInBlocks": false,
+        "visible": true
+    }
+}
