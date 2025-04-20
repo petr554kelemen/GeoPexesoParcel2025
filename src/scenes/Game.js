@@ -30,7 +30,7 @@ export default class Game extends Phaser.Scene {
 
         this.anims.create({
             key: 'animace-chuze',
-            frames: getChuzeFrames('clovicek', 1, 11), // Používáme prefix 'clovicek' a rozsah 1 až 11
+            frames: getChuzeFrames('clovicek', 1, 10), // Používáme prefix 'clovicek' a rozsah 1 až 11
             frameRate: 8,
             repeat: -1
         });
@@ -62,7 +62,7 @@ export default class Game extends Phaser.Scene {
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic08.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic09.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic10.png' },
-                { key: 'clovicek-tlaci-atlas', frame: 'Pic11.png' }
+                //{ key: 'clovicek-tlaci-atlas', frame: 'Pic11.png' }
             ],
             frameRate: 5,
             repeat: -1
@@ -84,14 +84,14 @@ export default class Game extends Phaser.Scene {
         this.add.image(this.scale.width / 2, this.scale.height / 2, 'backgroundGame');
 
         // 2. Umístění chlapíka na počáteční pozici
-        this.chlapik = this.physics.add.sprite(100, this.scale.height - 100, 'clovicek-jde-atlas').setOrigin(0.5, 1);
-        this.chlapik.setBodySize(110, 140).setOffset(-25, -100); // Uprav si body size podle potřeby
+        this.chlapik = this.physics.add.sprite(100, this.scale.height - 20, 'clovicek-jde-atlas').setOrigin(0.5, 1);
+        this.chlapik.setBodySize(110, 140).setOffset(-1, -1); // Uprav si body size podle potřeby
 
         // Vytvoření animací (chůze, tlačení, konečná)
         this.createAnimations();
 
         // 4. Umístění bedny mimo obrazovku
-        this.bedna = this.physics.add.sprite(-50, this.scale.height - 150, 'bedna-sprite').setOrigin(0.5, 1);
+        this.bedna = this.physics.add.sprite(-100, this.scale.height - 150, 'bedna-sprite').setOrigin(0.5, 1);
         this.bedna.setImmovable(true); // Na začátku je bedna nehybná
 
         // 3. Pohyb chlapíka mimo obrazovku
