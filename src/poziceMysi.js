@@ -1,3 +1,6 @@
+//
+//sledování pozice kursoru myši
+//
 let mouseText;
 
 function poziceMysi(scene) {
