@@ -1,3 +1,7 @@
+/*
+Funkční základní verze, bez textu
+*/
+
 import { poziceMysi } from "../poziceMysi";
 
 export default class Game extends Phaser.Scene {
