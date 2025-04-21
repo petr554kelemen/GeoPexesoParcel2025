@@ -134,7 +134,7 @@ export default class Game extends Phaser.Scene {
     }
 
     startPushing() {
-        
+
         this.chlapik.play('animace-tlaceni');
         this.bedna.setImmovable(false);
 
@@ -210,6 +210,43 @@ export default class Game extends Phaser.Scene {
         this.chlapik.body.setVelocityX(0);
         this.bedna.body.setVelocityX(0);
         this.chlapik.play('animace-konec');
+
+        const sirkaObrazovky = this.scale.width;
+        const stredObrazovkyX = sirkaObrazovky / 2;
+        const odstupRadek = 70;
+
+        // Styl pro první řádek (nyní menší)
+        const stylNadpis = {
+            fontFamily: 'Arial',
+            fontSize: '48px',
+            color: '#ffffff',
+            fontWeight: 'bold',
+            align: 'center',
+            backgroundColor: 'rgba(0, 100, 0, 0.8)'
+        };
+
+        // Styl pro druhé a třetí řádky (nyní větší)
+        const stylSouradnice = {
+            fontFamily: 'Courier New',
+            fontSize: '64px',
+            color: '#ffff00',
+            align: 'center'
+        };
+
+		// Nadpis
+		const nadpis = this.add.text(494, 116, "", {});
+		nadpis.setOrigin(0.5, 0.5);
+		nadpis.text = "Finální souřadnice";
+		nadpis.setStyle({ "align": "center", "backgroundColor": "#9bbbdbff", "color": "#ffffff", "fontFamily": "Arial Black", "fontSize": "47px", "stroke": "#000000", "strokeThickness": 8, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#624c4cff", "shadow.blur": 10, "shadow.fill": true });
+		nadpis.setPadding({"left":10,"top":10,"right":10,"bottom":10});
+
+		// textNaE
+		const textNaE = this.add.text(281, 350, "", {});
+		textNaE.scaleY = 2;
+		textNaE.setOrigin(0, 0.5);
+		textNaE.text = "N 50°00.000\nE 17°00.000";
+		textNaE.setStyle({ "backgroundColor": "", "fontFamily": "Georgia", "fontSize": "62px", "strokeThickness": 1, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#7b6363ff", "shadow.blur": 5, "shadow.fill": true });
+		textNaE.setPadding({"left":10,"top":10,"right":10,"bottom":10});
     }
 
     update(time, delta) {
