@@ -211,28 +211,6 @@ export default class Game extends Phaser.Scene {
         this.bedna.body.setVelocityX(0);
         this.chlapik.play('animace-konec');
 
-        const sirkaObrazovky = this.scale.width;
-        const stredObrazovkyX = sirkaObrazovky / 2;
-        const odstupRadek = 70;
-
-        // Styl pro první řádek (nyní menší)
-        const stylNadpis = {
-            fontFamily: 'Arial',
-            fontSize: '48px',
-            color: '#ffffff',
-            fontWeight: 'bold',
-            align: 'center',
-            backgroundColor: 'rgba(0, 100, 0, 0.8)'
-        };
-
-        // Styl pro druhé a třetí řádky (nyní větší)
-        const stylSouradnice = {
-            fontFamily: 'Courier New',
-            fontSize: '64px',
-            color: '#ffff00',
-            align: 'center'
-        };
-
 		// Nadpis
 		const nadpis = this.add.text(494, 116, "", {});
 		nadpis.setOrigin(0.5, 0.5);
