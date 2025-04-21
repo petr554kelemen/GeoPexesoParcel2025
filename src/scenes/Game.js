@@ -57,7 +57,7 @@ export default class Game extends Phaser.Scene {
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic11.png' }
             ],
             frameRate: 5,
-            repeat: -1
+            repeat: -1,
         });
     }
 
@@ -75,7 +75,7 @@ export default class Game extends Phaser.Scene {
         this.add.image(this.scale.width / 2, this.scale.height / 2, 'backgroundGame');
 
         // 2. Umístění chlapíka na cílovou počáteční pozici a nastavení alfy na 0 (neviditelný)
-        this.chlapik = this.physics.add.sprite(200, 500, 'clovicek-jde-atlas').setOrigin(0.5, 1);
+        this.chlapik = this.physics.add.sprite(200, 480, 'clovicek-jde-atlas').setOrigin(0.5, 1);
         this.chlapik.setBodySize(110, 140).setOffset(-1, -1);
         this.chlapik.alpha = 0; // Nastavíme průhlednost na 0
 
@@ -84,6 +84,8 @@ export default class Game extends Phaser.Scene {
         this.bedna = this.physics.add.sprite(-100, this.scale.height - 265, 'bedna-sprite').setOrigin(0.5, 1);
         this.bedna.setBodySize(150, 40).setOffset(-50, -1);
         this.bedna.setImmovable(true);
+
+        this.bedna.setScale(0.75); // Nastaví scaleX i scaleY na 0.75
 
         // Postupné zobrazení chlapíka pomocí tweenu
         this.tweens.add({
@@ -109,6 +111,7 @@ export default class Game extends Phaser.Scene {
             ease: 'Linear',
             onComplete: () => {
                 this.waveAndVanish(); // Zavoláme novou funkci pro "vlnu" a zmizení
+                //this.chlapik.flipX = true;
             }
         });
     }
@@ -127,6 +130,7 @@ export default class Game extends Phaser.Scene {
     }
 
     startPushing() {
+        
         this.chlapik.play('animace-tlaceni');
         this.bedna.setImmovable(false);
 
@@ -187,7 +191,9 @@ export default class Game extends Phaser.Scene {
             x: bednaCilX,
             duration: 5000,
             ease: 'Linear',
+            //flipX: false,
             onUpdate: () => {
+                this.chlapik.flipX = false;
                 this.chlapik.x = this.bedna.x - this.bedna.displayWidth / 2 - this.chlapik.displayWidth / 2;
             },
             onComplete: () => {
