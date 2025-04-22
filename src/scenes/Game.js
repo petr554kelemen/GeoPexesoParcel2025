@@ -1,7 +1,3 @@
-/*
-Funkční základní verze, bez textu
-*/
-
 import { poziceMysi } from "../poziceMysi";
 
 export default class Game extends Phaser.Scene {
@@ -58,7 +54,7 @@ export default class Game extends Phaser.Scene {
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic08.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic09.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic10.png' },
-                { key: 'clovicek-tlaci-atlas', frame: 'Pic11.png' }
+                //{ key: 'clovicek-tlaci-atlas', frame: 'Pic11.png' }
             ],
             frameRate: 5,
             repeat: -1,
@@ -79,14 +75,14 @@ export default class Game extends Phaser.Scene {
         this.add.image(this.scale.width / 2, this.scale.height / 2, 'backgroundGame');
 
         // 2. Umístění chlapíka na cílovou počáteční pozici a nastavení alfy na 0 (neviditelný)
-        this.chlapik = this.physics.add.sprite(200, 480, 'clovicek-jde-atlas').setOrigin(0.5, 1);
-        this.chlapik.setBodySize(110, 140).setOffset(-1, -1);
+        this.chlapik = this.physics.add.sprite(355, 500, 'clovicek-jde-atlas').setOrigin(0.5, 1);
+        this.chlapik.setBodySize(110, 140).setOffset(50, 0);
         this.chlapik.alpha = 0; // Nastavíme průhlednost na 0
 
         this.createAnimations();
 
-        this.bedna = this.physics.add.sprite(-100, this.scale.height - 265, 'bedna-sprite').setOrigin(0.5, 1);
-        this.bedna.setBodySize(150, 40).setOffset(-50, -1);
+        this.bedna = this.physics.add.sprite(-100, this.scale.height - 265, 'bedna-sprite').setOrigin(0.5, 0);
+        this.bedna.setBodySize(150, 40).setOffset(-150, 0);
         this.bedna.setImmovable(true);
 
         this.bedna.setScale(0.75); // Nastaví scaleX i scaleY na 0.75
@@ -111,11 +107,11 @@ export default class Game extends Phaser.Scene {
         this.tweens.add({
             targets: this.chlapik,
             x: -this.chlapik.displayWidth / 2, // Pohyb k levé hranici obrazovky (střed postavy na hranici)
-            duration: 2000,
+            duration: 3000,
             ease: 'Linear',
             onComplete: () => {
                 this.waveAndVanish(); // Zavoláme novou funkci pro "vlnu" a zmizení
-                //this.chlapik.flipX = true;
+                this.chlapik.flipX = false;
             }
         });
     }
@@ -124,8 +120,8 @@ export default class Game extends Phaser.Scene {
         this.chlapik.flipX = false;
         this.tweens.add({
             targets: this.chlapik,
-            x: this.bedna.x + this.bedna.displayWidth / 2 + this.chlapik.displayWidth / 2 + 20, // Pohyb těsně k bedně
-            duration: 2000,
+            x: this.bedna.x + this.bedna.displayWidth / 2 + this.chlapik.displayWidth / 2 + 50, // Pohyb těsně k bedně
+            duration: 1500,
             ease: 'Linear',
             onComplete: () => {
                 this.startPushing();
@@ -145,8 +141,8 @@ export default class Game extends Phaser.Scene {
         this.tweens.add({
             targets: [this.chlapik, this.bedna],
             x: bednaCilX,
-            duration: 5000,
-            ease: 'Linear',
+            duration: 7000,
+            ease: 'Cubic',
             onUpdate: () => {
                 this.chlapik.x = this.bedna.x - this.bedna.displayWidth / 2 - this.chlapik.displayWidth / 2;
             },
@@ -160,15 +156,15 @@ export default class Game extends Phaser.Scene {
         // Krátký návrat do viditelné části
         this.tweens.add({
             targets: this.chlapik,
-            x: -this.chlapik.displayWidth / 2 + 50, // Posuneme ho o kousek doprava
-            duration: 500,
+            x: -this.chlapik.displayWidth / 2 + 70, // Posuneme ho o kousek doprava
+            duration: 800,
             ease: 'Sine.easeInOut',
             yoyo: true, // Způsobí, že se tween po dosažení cíle přehraje zpět
             onComplete: () => {
                 // Po "vlně" spustíme plynulý pohyb za okraj a pak pohyb s bednou
                 this.tweens.add({
                     targets: this.chlapik,
-                    x: -this.chlapik.displayWidth - 50, // Pohyb za levou hranici
+                    x: -this.chlapik.displayWidth - 70, // Pohyb za levou hranici
                     duration: 1000,
                     ease: 'Linear',
                     onComplete: () => {
@@ -181,12 +177,12 @@ export default class Game extends Phaser.Scene {
 
     startMoveWithBedna() {
         // Nastavíme počáteční pozice mimo levou stranu obrazovky
-        this.chlapik.x = -this.chlapik.displayWidth / 2 - 100;
+        this.chlapik.x = -this.chlapik.displayWidth / 2 - 50;
         this.chlapik.alpha = 1; // Znovu ho zviditelníme
         this.chlapik.play('animace-tlaceni');
-        this.bedna.x = -this.bedna.displayWidth / 2 - 200;
+        this.bedna.x = -this.bedna.displayWidth / 2 - 150;
         this.bedna.setImmovable(false);
-        this.physics.add.collider(this.chlapik, this.bedna);
+        //this.physics.add.collider(this.chlapik, this.bedna);
 
         const bednaCilX = this.scale.width / 2 - this.bedna.displayWidth / 2;
 
@@ -197,8 +193,8 @@ export default class Game extends Phaser.Scene {
             ease: 'Linear',
             //flipX: false,
             onUpdate: () => {
-                this.chlapik.flipX = false;
-                this.chlapik.x = this.bedna.x - this.bedna.displayWidth / 2 - this.chlapik.displayWidth / 2;
+                //this.chlapik.flipX = false;
+                this.chlapik.x = this.bedna.x - this.bedna.displayWidth / 2 - this.chlapik.displayWidth / 2 + 15;
             },
             onComplete: () => {
                 this.stopAnimation();
@@ -211,20 +207,20 @@ export default class Game extends Phaser.Scene {
         this.bedna.body.setVelocityX(0);
         this.chlapik.play('animace-konec');
 
-		// Nadpis
-		const nadpis = this.add.text(494, 116, "", {});
-		nadpis.setOrigin(0.5, 0.5);
-		nadpis.text = "Finální souřadnice";
-		nadpis.setStyle({ "align": "center", "backgroundColor": "#9bbbdbff", "color": "#ffffff", "fontFamily": "Arial Black", "fontSize": "47px", "stroke": "#000000", "strokeThickness": 8, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#624c4cff", "shadow.blur": 10, "shadow.fill": true });
-		nadpis.setPadding({"left":10,"top":10,"right":10,"bottom":10});
+        // Nadpis
+        const nadpis = this.add.text(494, 100, "", {});
+        nadpis.setOrigin(0.5, 0.5);
+        nadpis.text = "Finální souřadnice";
+        nadpis.setStyle({ "align": "center", "backgroundColor": "#9bbbdbff", "color": "#ffffff", "fontFamily": "Arial Black", "fontSize": "47px", "stroke": "#000000", "strokeThickness": 8, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#624c4cff", "shadow.blur": 10, "shadow.fill": true });
+        nadpis.setPadding({ "left": 10, "top": 10, "right": 10, "bottom": 10 });
 
-		// textNaE
-		const textNaE = this.add.text(281, 350, "", {});
-		textNaE.scaleY = 2;
-		textNaE.setOrigin(0, 0.5);
-		textNaE.text = "N 50°00.000\nE 17°00.000";
-		textNaE.setStyle({ "backgroundColor": "", "fontFamily": "Georgia", "fontSize": "62px", "strokeThickness": 1, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#7b6363ff", "shadow.blur": 5, "shadow.fill": true });
-		textNaE.setPadding({"left":10,"top":10,"right":10,"bottom":10});
+        // textNaE
+        const textNaE = this.add.text(281, 300, "", {});
+        textNaE.scaleY = 2;
+        textNaE.setOrigin(0, 0.5);
+        textNaE.text = "N 50°00.000\nE 17°00.000";
+        textNaE.setStyle({ "backgroundColor": "", "fontFamily": "Georgia", "fontSize": "62px", "strokeThickness": 1, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#7b6363ff", "shadow.blur": 5, "shadow.fill": true });
+        textNaE.setPadding({ "left": 10, "top": 10, "right": 10, "bottom": 10 });
     }
 
     update(time, delta) {

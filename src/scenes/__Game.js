@@ -30,25 +30,16 @@ export default class __Game extends Phaser.Scene {
 		background.alphaBottomLeft = 0.8;
 		background.alphaBottomRight = 0.8;
 
-		// Nadpis
-		const nadpis = this.add.text(494, 116, "", {});
-		nadpis.setOrigin(0.5, 0.5);
-		nadpis.text = "Finální souřadnice";
-		nadpis.setStyle({ "align": "center", "backgroundColor": "#9bbbdbff", "color": "#ffffff", "fontFamily": "Arial Black", "fontSize": "47px", "stroke": "#000000", "strokeThickness": 8, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#624c4cff", "shadow.blur": 10, "shadow.fill": true });
-		nadpis.setPadding({"left":10,"top":10,"right":10,"bottom":10});
+		// pic100
+		const pic100 = this.add.image(355, 500, "Pic10", 0);
+		pic100.setOrigin(1, 1);
 
-		// clovicek-pohyb
-		const clovicek_pohyb = this.add.sprite(132, 468, "_MISSING");
-		clovicek_pohyb.setOrigin(0, 1);
-		clovicek_pohyb.play("boy-go");
+		// sprite_1
+		const sprite_1 = this.add.sprite(360, 500, "bedna.png");
+		sprite_1.setOrigin(0, 1);
 
-		// textNaE
-		const textNaE = this.add.text(281, 350, "", {});
-		textNaE.scaleY = 2;
-		textNaE.setOrigin(0, 0.5);
-		textNaE.text = "N 50°00.000\nE 17°00.000";
-		textNaE.setStyle({ "backgroundColor": "", "fontFamily": "Georgia", "fontSize": "62px", "strokeThickness": 1, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#7b6363ff", "shadow.blur": 5, "shadow.fill": true });
-		textNaE.setPadding({"left":10,"top":10,"right":10,"bottom":10});
+		// colliderBednaVsChlapik
+		this.physics.add.collider(pic100, sprite_1);
 
 		this.events.emit("scene-awake");
 	}
