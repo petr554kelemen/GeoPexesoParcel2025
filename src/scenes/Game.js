@@ -49,7 +49,7 @@ export default class Game extends Phaser.Scene {
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic04.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic05.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic06.png' },
-                { key: 'clovicek-tlaci-atlas', frame: 'Pic06a.png' },
+                //{ key: 'clovicek-tlaci-atlas', frame: 'Pic06a.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic07.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic08.png' },
                 { key: 'clovicek-tlaci-atlas', frame: 'Pic09.png' },
@@ -76,19 +76,20 @@ export default class Game extends Phaser.Scene {
 
         // 2. Umístění chlapíka na cílovou počáteční pozici a nastavení alfy na 0 (neviditelný)
         this.chlapik = this.physics.add.sprite(355, 500, 'clovicek-jde-atlas').setOrigin(0.5, 1);
-        this.chlapik.setBodySize(85, 140).setOffset(0, 0);
+        this.chlapik.setBodySize(30, 70).setOffset(-80, 0);
         this.chlapik.alpha = 0; // Nastavíme průhlednost na 0
 
         this.createAnimations();
 
-        this.bedna = this.physics.add.sprite(-100, this.scale.height - 265, 'bedna-sprite').setOrigin(0.5, 0);
-        this.bedna.setBodySize(150, 40).setOffset(-150, 0);
+        this.bedna = this.physics.add.sprite(-100, 436, 'bedna-sprite').setOrigin(0.5, 0);
+        this.bedna.setBodySize(150, 40).setOffset(0, 0);
         this.bedna.setImmovable(true);
 
         this.bedna.setScale(0.75); // Nastaví scaleX i scaleY na 0.75
 
         // Postupné zobrazení chlapíka pomocí tweenu
         this.tweens.add({
+            y: 500,
             targets: this.chlapik,
             alpha: 1,
             duration: 1500,
@@ -107,6 +108,7 @@ export default class Game extends Phaser.Scene {
         this.tweens.add({
             targets: this.chlapik,
             x: -this.chlapik.displayWidth / 2, // Pohyb k levé hranici obrazovky (střed postavy na hranici)
+            y: 436,
             duration: 3000,
             ease: 'Linear',
             onComplete: () => {
@@ -120,7 +122,8 @@ export default class Game extends Phaser.Scene {
         this.chlapik.flipX = false;
         this.tweens.add({
             targets: this.chlapik,
-            x: this.bedna.x + this.bedna.displayWidth / 2 + this.chlapik.displayWidth / 2 + 50, // Pohyb těsně k bedně
+            x: this.bedna.x, // Pohyb těsně k bedně
+            y: 436,
             duration: 1500,
             ease: 'Linear',
             onComplete: () => {
@@ -144,7 +147,7 @@ export default class Game extends Phaser.Scene {
             duration: 7000,
             ease: 'Cubic',
             onUpdate: () => {
-                this.chlapik.x = this.bedna.x - this.bedna.displayWidth / 2 - this.chlapik.displayWidth / 2;
+                this.chlapik.x = this.bedna.x; // - this.bedna.displayWidth / 2;
             },
             onComplete: () => {
                 this.stopAnimation();
@@ -156,7 +159,7 @@ export default class Game extends Phaser.Scene {
         // Krátký návrat do viditelné části
         this.tweens.add({
             targets: this.chlapik,
-            x: -this.chlapik.displayWidth / 2 + 70, // Posuneme ho o kousek doprava
+            x: -this.chlapik.displayWidth / 2 + 90, // Posuneme ho o kousek doprava
             duration: 800,
             ease: 'Sine.easeInOut',
             yoyo: true, // Způsobí, že se tween po dosažení cíle přehraje zpět
