@@ -5,6 +5,7 @@ export default class Game extends Phaser.Scene {
         super("Game");
         this.chlapik = null;
         this.bedna = null;
+        this.poziceY = 436;
     }
 
     preload() {
@@ -75,21 +76,24 @@ export default class Game extends Phaser.Scene {
         this.add.image(this.scale.width / 2, this.scale.height / 2, 'backgroundGame');
 
         // 2. Umístění chlapíka na cílovou počáteční pozici a nastavení alfy na 0 (neviditelný)
-        this.chlapik = this.physics.add.sprite(355, 500, 'clovicek-jde-atlas').setOrigin(0.5, 1);
-        this.chlapik.setBodySize(30, 70).setOffset(-80, 0);
+        this.chlapik = this.physics.add.sprite(355, this.poziceY, 'clovicek-jde-atlas').setOrigin(0.5, 1);
+
+        //this.chlapik.setOffset(-85, 0);
         this.chlapik.alpha = 0; // Nastavíme průhlednost na 0
 
         this.createAnimations();
 
-        this.bedna = this.physics.add.sprite(-100, 436, 'bedna-sprite').setOrigin(0.5, 0);
-        this.bedna.setBodySize(150, 40).setOffset(0, 0);
-        this.bedna.setImmovable(true);
+        this.bedna = this.physics.add.sprite(-100, this.poziceY, 'bedna-sprite').setOrigin(0.5, 0);
+        //this.bedna.enableBody(-355, this.poziceY);
+        //this.bedna.setOffset(350, 0);
+        //this.bedna.alpha = 0;
+        this.bedna.setImmovable();
 
         this.bedna.setScale(0.75); // Nastaví scaleX i scaleY na 0.75
 
         // Postupné zobrazení chlapíka pomocí tweenu
         this.tweens.add({
-            y: 500,
+            y: 436 - this.chlapik.width/2,
             targets: this.chlapik,
             alpha: 1,
             duration: 1500,
@@ -99,7 +103,7 @@ export default class Game extends Phaser.Scene {
             }
         });
 
-        poziceMysi(this);
+        poziceYMysi(this);
     }
 
     moveChlapikOffscreen() {
@@ -122,7 +126,7 @@ export default class Game extends Phaser.Scene {
         this.chlapik.flipX = false;
         this.tweens.add({
             targets: this.chlapik,
-            x: this.bedna.x, // Pohyb těsně k bedně
+            x: this.bedna.x + 85, // Pohyb těsně k bedně
             y: 436,
             duration: 1500,
             ease: 'Linear',
@@ -133,17 +137,19 @@ export default class Game extends Phaser.Scene {
     }
 
     startPushing() {
-
         this.chlapik.play('animace-tlaceni');
-        this.bedna.setImmovable(false);
+        //this.bedna.alpha = 1;
+        //this.bedna.enableBody(-100, this.poziceY);
+        this.bedna.setImmovable();
 
-        this.physics.add.collider(this.chlapik, this.bedna);
+        //this.physics.add.overlap(this.chlapik, this.bedna);
 
-        const bednaCilX = this.scale.width / 2 - this.bedna.displayWidth / 2;
+        const bednaCilX = this.poziceY - this.bedna.displayWidth / 2;
 
         this.tweens.add({
             targets: [this.chlapik, this.bedna],
             x: bednaCilX,
+            y: this.poziceY,
             duration: 7000,
             ease: 'Cubic',
             onUpdate: () => {
@@ -159,49 +165,49 @@ export default class Game extends Phaser.Scene {
         // Krátký návrat do viditelné části
         this.tweens.add({
             targets: this.chlapik,
-            x: -this.chlapik.displayWidth / 2 + 90, // Posuneme ho o kousek doprava
+            x: -this.chlapik.displayWidth / 2 + 30, // Posuneme ho o kousek doprava
             duration: 800,
             ease: 'Sine.easeInOut',
             yoyo: true, // Způsobí, že se tween po dosažení cíle přehraje zpět
             onComplete: () => {
-                // Po "vlně" spustíme plynulý pohyb za okraj a pak pohyb s bednou
+                // Po "vlně" spustíme plynulý pohyb na pozici před bednu
                 this.tweens.add({
                     targets: this.chlapik,
-                    x: -this.chlapik.displayWidth - 70, // Pohyb za levou hranici
+                    x: -this.bedna.displayWidth / 2 - this.chlapik.displayWidth / 2 + 15 - 50, // poziceY těsně před bednou
+                    y: 436,
                     duration: 1000,
                     ease: 'Linear',
                     onComplete: () => {
-                        this.startMoveWithBedna();
+                        this.prepareToPush();
                     }
                 });
             }
         });
     }
 
-    startMoveWithBedna() {
-        // Nastavíme počáteční pozice mimo levou stranu obrazovky
-        this.chlapik.x = -this.chlapik.displayWidth / 2 - 50;
+    prepareToPush() {
         this.chlapik.alpha = 1; // Znovu ho zviditelníme
         this.chlapik.play('animace-tlaceni');
         this.bedna.x = -this.bedna.displayWidth / 2 - 150;
         this.bedna.setImmovable(false);
-        //this.physics.add.collider(this.chlapik, this.bedna);
+        this.physics.add.overlap(this.chlapik, this.bedna);
 
-        const bednaCilX = this.scale.width / 2 - this.bedna.displayWidth / 2;
+        const bednaCilX = this.scale.width / 2;
 
         this.tweens.add({
-            targets: this.bedna,
-            x: bednaCilX,
+            targets: [this.chlapik, this.bedna],
+            x: bednaCilX + this.bedna.body,
             duration: 5000,
             ease: 'Linear',
-
-            onUpdate: () => {
-                this.chlapik.x = this.bedna.x - this.bedna.displayWidth / 2 - this.chlapik.displayWidth / 2 + 15;
-            },
             onComplete: () => {
                 this.stopAnimation();
             }
         });
+    }
+
+    startMoveWithBedna() {
+        // Tuto funkci nyní nebudeme volat přímo z waveAndVanish.
+        // Její logika je přesunuta do prepareToPush().
     }
 
     stopAnimation() {
