@@ -76,7 +76,7 @@ export default class Game extends Phaser.Scene {
 
         // 2. Umístění chlapíka na cílovou počáteční pozici a nastavení alfy na 0 (neviditelný)
         this.chlapik = this.physics.add.sprite(355, 500, 'clovicek-jde-atlas').setOrigin(0.5, 1);
-        this.chlapik.setBodySize(110, 140).setOffset(50, 0);
+        this.chlapik.setBodySize(85, 140).setOffset(0, 0);
         this.chlapik.alpha = 0; // Nastavíme průhlednost na 0
 
         this.createAnimations();
@@ -191,9 +191,8 @@ export default class Game extends Phaser.Scene {
             x: bednaCilX,
             duration: 5000,
             ease: 'Linear',
-            //flipX: false,
+
             onUpdate: () => {
-                //this.chlapik.flipX = false;
                 this.chlapik.x = this.bedna.x - this.bedna.displayWidth / 2 - this.chlapik.displayWidth / 2 + 15;
             },
             onComplete: () => {
@@ -219,11 +218,12 @@ export default class Game extends Phaser.Scene {
         textNaE.scaleY = 2;
         textNaE.setOrigin(0, 0.5);
         textNaE.text = "N 50°00.000\nE 17°00.000";
-        textNaE.setStyle({ "backgroundColor": "", "fontFamily": "Georgia", "fontSize": "62px", "strokeThickness": 1, "shadow.offsetX": 10, "shadow.offsetY": 10, "shadow.color": "#7b6363ff", "shadow.blur": 5, "shadow.fill": true });
+        textNaE.setStyle({ "backgroundColor": "", "fontFamily": "Georgia", "fontSize": "62px", "strokeThickness": 1, "shadow.offsetX": 5, "shadow.offsetY": 5, "shadow.color": "#7b6363ff", "shadow.blur": 5, "shadow.fill": true });
         textNaE.setPadding({ "left": 10, "top": 10, "right": 10, "bottom": 10 });
     }
 
     update(time, delta) {
         // Sem můžeš přidat další logiku, pokud bude potřeba
+        //console.log(time, delta);
     }
 }
