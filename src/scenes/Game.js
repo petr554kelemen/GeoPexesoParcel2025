@@ -16,6 +16,8 @@ export default class Game extends Phaser.Scene {
         this.load.atlas('clovicek-tlaci-atlas', 'assets/animace/clovicek_tlaci.png', 'assets/animace/clovicek_tlaci.json');
         this.load.image('bedna-sprite', 'assets/bedna.png');
         this.load.image('backgroundGame', 'assets/images/freepikBackground.png');
+        this.load.image('arrow_left', 'assets/3d-arrow-left.png');
+        this.load.image('arrow_right', 'assets/3d-arrow-right.png');
     }
 
     createAnimations() {
@@ -89,22 +91,36 @@ export default class Game extends Phaser.Scene {
         this.add.image(this.scale.width / 2, this.scale.height / 2, 'backgroundGame');
 
         const bednaScale = 0.7;
-        //this.bedna = this.physics.add.sprite(this.scale.width / 2 + 100, 510, 'bedna-sprite').setOrigin(0, 1).setScale(bednaScale).setImmovable(false).setCollideWorldBounds(true).body.pushable = true;
-        this.bedna = this.physics.add.sprite(this.scale.width / 2 + 100, 510, 'bedna-sprite').setOrigin(0, 1).setScale(bednaScale).setImmovable(true).setCollideWorldBounds(true);
+        this.bedna = this.physics.add.sprite(this.scale.width / 2 + 100, 510, 'bedna-sprite').setOrigin(0, 1);
+        this.bedna.setScale(bednaScale).setImmovable(true).setCollideWorldBounds(true);
         this.bedna.body.pushable = true; // Nastavujeme pushable až po vytvoření spritu
-        console.log("Bedna po vytvoření:", this.bedna); // Přidáme log pro kontrolu bedny
-        console.log("Tělo bedny po vytvoření:", this.bedna.body) // Přidáme log pro kontrolu těla hned po vytvoření
-        //console.log("Tělo bedny:", this.bedna ? this.bedna.body : null);
+        this.bedna.body.setGravityY(0);
 
-        this.chlapik = this.physics.add.sprite(0, 0, 'clovicek-jde-atlas').setOrigin(0.5, 1); // Vytvoříme ho nejdřív bez konkrétní pozice
-        this.chlapik.body.setSize(18, 140).setGravityY(0).setCollideWorldBounds(true);
-
-        const nahodnaPoziceChlapika = this.najdiNahodnouPoziciProChlapika(); // Teď už this.chlapik existuje
+        this.chlapik = this.physics.add.sprite(0, 0, 'clovicek-jde-atlas').setOrigin(0.5, 1);
+        this.chlapik.body.setSize(18, 100).setGravityY(0).setCollideWorldBounds(true);
+        const nahodnaPoziceChlapika = this.najdiNahodnouPoziciProChlapika();
         this.chlapik.setPosition(nahodnaPoziceChlapika.x, nahodnaPoziceChlapika.y);
 
         this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
 
         this.createAnimations();
+
+        // Odskok bedny od okraje a zpomalení
+        this.bedna.body.onWorldBounds = true;
+        const bounceSpeed = 80; // Nastavíme sílu odrazu
+        const dragAfterBounce = 0.98; // Hodnota odporu po odrazu
+        const stopThreshold = 5; // Prahová hodnota rychlosti pro zastavení odporu
+
+        this.physics.world.on('worldbounds', (body) => {
+            if (body.gameObject === this.bedna && (body.blocked.left || body.blocked.right)) {
+                if (body.blocked.left) {
+                    body.setVelocityX(bounceSpeed);
+                } else if (body.blocked.right) {
+                    body.setVelocityX(-bounceSpeed);
+                }
+                this.bedna.body.drag.x = dragAfterBounce; // Nastavíme odpor po odrazu
+            }
+        });
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -128,7 +144,7 @@ export default class Game extends Phaser.Scene {
         this.chlapik.setVelocityY(0);
 
         const isMovingManually = this.cursors.left.isDown || this.cursors.right.isDown || this.cursors.up.isDown || this.cursors.down.isDown || this.moveLeft || this.moveRight;
-        const autoMoveSpeed = 80;
+        const autoMoveSpeed = 35;
         const centerX = this.scale.width / 2;
         const centerY = this.scale.height / 2;
         const isNearLeftEdgeChlapik = this.chlapik.x < 50;
@@ -183,7 +199,7 @@ export default class Game extends Phaser.Scene {
                 if (!this.isPushing && !this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
                     this.chlapik.play('animace-chuze', true);
                 }
-            } else if (this.cursors.up.isDown) {
+            } /*else if (this.cursors.up.isDown) {
                 this.chlapik.setVelocityY(-manualSpeed);
                 if (!this.isPushing && !this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
                     this.chlapik.play('animace-chuze', true);
@@ -193,7 +209,7 @@ export default class Game extends Phaser.Scene {
                 if (!this.isPushing && !this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
                     this.chlapik.play('animace-chuze', true);
                 }
-            } else {
+            }*/ else {
                 this.chlapik.stop('animace-chuze');
             }
         }
@@ -217,12 +233,16 @@ export default class Game extends Phaser.Scene {
             }
         }
 
-        
         /*
         if (!this.isPushing) {
             this.chlapik.stop('animace-tlaceni');
         }
         */
+
+        // Kontrola rychlosti bedny pro vypnutí odporu
+        //if (this.bedna && this.bedna.body && Math.abs(this.bedna.body.velocity.x) < stopThreshold) {
+        //    this.bedna.body.drag.x = 0;
+        //}
 
         this.chlapikInfoText.setText(`Chlapík X: ${Math.floor(this.chlapik.x)}, Y: ${Math.floor(this.chlapik.y)}, Tlačí: ${this.isPushing}, Man. Ovládání: ${isMovingManually}`);
 
@@ -230,9 +250,11 @@ export default class Game extends Phaser.Scene {
 
 
     handleCollision(chlapik, bedna) {
-        
-            console.log("DOŠLO KE KOLIZI!");
-            this.isPushing = true; // Nastavujeme isPushing při kolizi
-        
+
+        console.log("DOŠLO KE KOLIZI!");
+        this.isPushing = true; // Nastavujeme isPushing při kolizi
+        this.chlapik.setMass(.5);
+        this.bedna.setMass(.5);
+
     }
 }
