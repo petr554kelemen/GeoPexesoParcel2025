@@ -5,10 +5,13 @@ export default class Game extends Phaser.Scene {
     constructor() {
         super('Game');
         this.isPushing = false; // Vlastnost scény pro sledování tlačení
+        this.pushStartTime = 0; // Čas začátku tlačení
+        this.isChargingPush = false; // Sledujeme, zda hráč drží tlačítko pro "nabití" tahu
         this.chlapik = null;
         this.bedna = null;
         this.moveLeft = false;
         this.moveRight = false;
+        this.stopThreshold = null;
     }
 
     preload() {
@@ -91,36 +94,65 @@ export default class Game extends Phaser.Scene {
         this.add.image(this.scale.width / 2, this.scale.height / 2, 'backgroundGame');
 
         const bednaScale = 0.7;
-        this.bedna = this.physics.add.sprite(this.scale.width / 2 + 100, 510, 'bedna-sprite').setOrigin(0, 1);
-        this.bedna.setScale(bednaScale).setImmovable(true).setCollideWorldBounds(true);
-        this.bedna.body.pushable = true; // Nastavujeme pushable až po vytvoření spritu
-        this.bedna.body.setGravityY(0);
+        this.bedna = this.physics.add.sprite(this.scale.width / 2 + 100, 510, 'bedna-sprite');
+        this.bedna.setOrigin(0, 1);
+        this.bedna.setScale(bednaScale);
+        this.bedna.setCollideWorldBounds(true);
+        this.bedna.body.pushable = true;
+        this.bedna.body.linearDamping = 0.5;
+        this.bedna.body.setSize(155, 120).setOffset(0, -30);
 
-        this.chlapik = this.physics.add.sprite(0, 0, 'clovicek-jde-atlas').setOrigin(0.5, 1);
-        this.chlapik.body.setSize(18, 100).setGravityY(0).setCollideWorldBounds(true);
+        this.chlapik = this.physics.add.sprite(0, 0, 'clovicek-jde-atlas');
+        this.chlapik.setOrigin(0.5, 1);
+        this.chlapik.body.setSize(18, 100);
+        this.chlapik.body.setGravityY(0);
+        this.chlapik.setCollideWorldBounds(true);
         const nahodnaPoziceChlapika = this.najdiNahodnouPoziciProChlapika();
         this.chlapik.setPosition(nahodnaPoziceChlapika.x, nahodnaPoziceChlapika.y);
 
-        this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
+        this.pushDirectionX = 1;
+
+        this.collider = this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
+        console.log('Hodnota this.collider po vytvoření:', this.collider); // Přidaný log
 
         this.createAnimations();
 
-        // Odskok bedny od okraje a zpomalení
+        // Odskok bedny od okraje
         this.bedna.body.onWorldBounds = true;
-        const bounceSpeed = 80; // Nastavíme sílu odrazu
-        const dragAfterBounce = 0.98; // Hodnota odporu po odrazu
-        const stopThreshold = 5; // Prahová hodnota rychlosti pro zastavení odporu
+        const bounceSpeed = 10; // Nastavíme sílu odrazu
 
+        
         this.physics.world.on('worldbounds', (body) => {
-            if (body.gameObject === this.bedna && (body.blocked.left || body.blocked.right)) {
+            console.log("body:", body);
+            if (body.gameObject === this.bedna) {
                 if (body.blocked.left) {
                     body.setVelocityX(bounceSpeed);
+                    this.chlapik.body.setVelocityX(0); // Zde nulujeme rychlost chlapíka na ose X
+                    this.isPushing = false;
                 } else if (body.blocked.right) {
                     body.setVelocityX(-bounceSpeed);
+                    this.chlapik.body.setVelocityX(0); // Zde nulujeme rychlost chlapíka na ose X
+                    this.isPushing = false;
                 }
-                this.bedna.body.drag.x = dragAfterBounce; // Nastavíme odpor po odrazu
+                // Vertikální odraz prozatím vynecháme
             }
         });
+        
+
+        const targetZoneX = this.scale.width / 2;
+        const targetZoneY = 510; // Zhruba Y pozice bedny
+        const targetZoneWidth = 150; // Nastav si požadovanou šířku
+        const targetZoneHeight = this.bedna.height; // Nastav si požadovanou výšku
+
+        this.targetZone = this.add.rectangle(targetZoneX, targetZoneY, targetZoneWidth, targetZoneHeight, 0x00ff00, 0.3).setOrigin(0.5, 0.5);
+        this.physics.world.enable(this.targetZone);
+        this.targetZone.body.setImmovable(true); // Nastavíme jako statické těleso
+
+        this.targetZoneActive = false; // Proměnná pro sledování, zda je bedna v zóně
+        this.coordinatesText = this.add.text(10, 60, '', { fontSize: '16px', fill: '#fff' });
+
+        // Sledujeme překryv bedny a cílové zóny
+        this.physics.add.overlap(this.bedna, this.targetZone, this.handleBednaOverlapTarget, null, this);
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -133,128 +165,121 @@ export default class Game extends Phaser.Scene {
     }
 
     update(time, delta) {
-        //this.chlapik.play('animace-tlaceni', true);
-        //console.log("Chlapík:", this.chlapik);
-        //console.log("Tělo chlapíka:", this.chlapik ? this.chlapik.body : null);
-        //console.log("Bedna:", this.bedna);
-        //console.log("Tělo bedny:", this.bedna ? this.bedna.body : null);
-
-
         this.chlapik.setVelocityX(0);
         this.chlapik.setVelocityY(0);
-
+    
         const isMovingManually = this.cursors.left.isDown || this.cursors.right.isDown || this.cursors.up.isDown || this.cursors.down.isDown || this.moveLeft || this.moveRight;
-        const autoMoveSpeed = 35;
-        const centerX = this.scale.width / 2;
-        const centerY = this.scale.height / 2;
-        const isNearLeftEdgeChlapik = this.chlapik.x < 50;
-        const isNearRightEdgeChlapik = this.chlapik.x > this.scale.width - 50;
-        const isNearTopEdgeChlapik = this.chlapik.y < 50;
-        const isNearBottomEdgeChlapik = this.chlapik.y > this.scale.height - 50;
-        const edgeThreshold = 10;
-        const isBednaAtLeftEdge = this.bedna.x < edgeThreshold;
-        const isBednaAtRightEdge = this.bedna.x > this.scale.width - this.bedna.width * this.bedna.scaleX - edgeThreshold;
-        const isBednaAtTopEdge = this.bedna.y < edgeThreshold;
-        const isBednaAtBottomEdge = this.bedna.y > this.scale.height - this.bedna.height * this.bedna.scaleY - edgeThreshold;
         const manualSpeed = 160;
-
-        if (!isMovingManually) {
-            // Automatický pohyb chlapíka ke středu
-            if (isNearLeftEdgeChlapik && this.chlapik.x < centerX) {
-                this.chlapik.setVelocityX(autoMoveSpeed);
-                if (!this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
-                    this.chlapik.play('animace-chuze', true);
-                }
-                this.chlapik.flipX = false;
-            } else if (isNearRightEdgeChlapik && this.chlapik.x > centerX) {
-                this.chlapik.setVelocityX(-autoMoveSpeed);
-                if (!this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
-                    this.chlapik.play('animace-chuze', true);
-                }
-                this.chlapik.flipX = true;
-            } else if (isNearTopEdgeChlapik && this.chlapik.y < centerY) {
-                this.chlapik.setVelocityY(autoMoveSpeed);
-                if (!this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
-                    this.chlapik.play('animace-chuze', true);
-                }
-            } else if (isNearBottomEdgeChlapik && this.chlapik.y > centerY) {
-                this.chlapik.setVelocityY(-autoMoveSpeed);
-                if (!this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
-                    this.chlapik.play('animace-chuze', true);
+    
+        console.log('isPushing:', this.isPushing);
+    
+        if (this.cursors.left.isDown || this.moveLeft) {
+            this.chlapik.setVelocityX(-manualSpeed);
+            this.chlapik.flipX = true;
+            if (this.isPushing) {
+                this.pushDirectionX = -1;
+                if (!this.isChargingPush && this.collider && this.collider.active) {
+                    this.isChargingPush = true;
+                    this.pushStartTime = time;
+                    this.chlapikPocatecniPoziceXPriTahu = this.chlapik.x;
+                    this.collider.active = false;
+                    //console.log('Začátek nabíjení tahu (LEFT)...');
                 }
             } else {
-                this.chlapik.stop('animace-chuze');
+                this.chlapik.play('animace-chuze', true);
+            }
+        } else if (this.cursors.right.isDown || this.moveRight) {
+            this.chlapik.setVelocityX(manualSpeed);
+            this.chlapik.flipX = false;
+            if (this.isPushing) {
+                this.pushDirectionX = 1;
+                if (!this.isChargingPush && this.collider && this.collider.active) {
+                    this.isChargingPush = true;
+                    this.pushStartTime = time;
+                    this.chlapikPocatecniPoziceXPriTahu = this.chlapik.x;
+                    this.collider.active = false;
+                    // console.log('Začátek nabíjení tahu (RIGHT)...');
+                }
+            } else {
+                this.chlapik.play('animace-chuze', true);
             }
         } else {
-            // Manuální ovládání chlapíka
-            if (this.cursors.left.isDown || this.moveLeft) {
-                this.chlapik.setVelocityX(-manualSpeed);
-                this.chlapik.flipX = true;
-                if (!this.isPushing && !this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
-                    this.chlapik.play('animace-chuze', true);
+            this.chlapik.stop('animace-chuze');
+            this.isPushing = false; // Nastavujeme na false, když se hráč nehýbe
+            if (this.isChargingPush) {
+                this.isChargingPush = false;
+                const pushDuration = time - this.pushStartTime;
+                const pohybBehemTahu = Math.abs(this.chlapik.x - this.chlapikPocatecniPoziceXPriTahu);
+    
+                if (pushDuration >= this.casMinProTlak && pohybBehemTahu >= this.pohybMinProTlak) {
+                    this.applyPushImpulse(pushDuration, this.pushDirectionX);
+                } else {
+                    console.log('Tlak zrušen: příliš krátký stisk nebo malý pohyb.');
                 }
-            } else if (this.cursors.right.isDown || this.moveRight) {
-                this.chlapik.setVelocityX(manualSpeed);
-                this.chlapik.flipX = false;
-                if (!this.isPushing && !this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
-                    this.chlapik.play('animace-chuze', true);
+    
+                if (this.collider) {
+                    this.collider.active = true;
+                    this.collider = this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
+                    // console.log('Konec nabíjení tahu... Collider aktivován a kolize znovu nastavena.');
                 }
-            } /*else if (this.cursors.up.isDown) {
-                this.chlapik.setVelocityY(-manualSpeed);
-                if (!this.isPushing && !this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
-                    this.chlapik.play('animace-chuze', true);
-                }
-            } else if (this.cursors.down.isDown) {
-                this.chlapik.setVelocityY(manualSpeed);
-                if (!this.isPushing && !this.chlapik.anims.isPlaying) { // Přidali jsme kontrolu !this.chlapik.anims.isPlaying
-                    this.chlapik.play('animace-chuze', true);
-                }
-            }*/ else {
-                this.chlapik.stop('animace-chuze');
             }
         }
 
-        // Logika tlačení
-        if (this.chlapik && this.chlapik.body && this.bedna && this.bedna.body) {
-            const isMoving = (this.chlapik.body.velocity.x !== 0 || this.chlapik.body.velocity.y !== 0);
+        const bednaBounds = this.bedna.getBounds();
+        const targetZoneRect = this.targetZone.getBounds();
 
-            if (this.isPushing && isMoving) { // Jednodušší podmínka pro testování
-                console.log("Pokouším se přehrát animaci tlačení (jednodušší)");
-                this.chlapik.play('animace-tlaceni', true);
-                this.bedna.body.velocity.x = this.chlapik.body.velocity.x;
-                this.bedna.body.velocity.y = this.chlapik.body.velocity.y;
-            } else if (this.isPushing && !isMoving) {
-                this.isPushing = false;
-                this.chlapik.stop('animace-tlaceni');
-                this.bedna.body.velocity.x *= 0.95;
-                this.bedna.body.velocity.y *= 0.95;
-                if (Math.abs(this.bedna.body.velocity.x) < 5) this.bedna.body.velocity.x = 0;
-                if (Math.abs(this.bedna.body.velocity.y) < 5) this.bedna.body.velocity.y = 0;
+        if (Phaser.Geom.Rectangle.Overlaps(bednaBounds, targetZoneRect)) {
+            if (!this.targetZoneActive) {
+                this.coordinatesText.setText(`Souřadnice bedny: X: ${Math.floor(this.bedna.x)}, Y: ${Math.floor(this.bedna.y)}`);
+                this.targetZoneActive = true;
             }
+        } else {
+            this.coordinatesText.setText('');
+            this.targetZoneActive = false;
         }
-
-        /*
-        if (!this.isPushing) {
-            this.chlapik.stop('animace-tlaceni');
-        }
-        */
-
-        // Kontrola rychlosti bedny pro vypnutí odporu
-        //if (this.bedna && this.bedna.body && Math.abs(this.bedna.body.velocity.x) < stopThreshold) {
-        //    this.bedna.body.drag.x = 0;
-        //}
-
-        this.chlapikInfoText.setText(`Chlapík X: ${Math.floor(this.chlapik.x)}, Y: ${Math.floor(this.chlapik.y)}, Tlačí: ${this.isPushing}, Man. Ovládání: ${isMovingManually}`);
-
+        // console.log('Souřadnice bedny v update: X:', this.bedna.x, 'Y:', this.bedna.y);
+        console.log('isPushing:', this.isPushing);
+        this.zkontrolujDosaženíCíle();
     }
 
+    applyPushImpulse(duration, directionX) {
+        if (this.bedna && this.bedna.body) {
+            const pushForce = duration / 500;
+            const impulseVelocity = this.pushDirectionX * pushForce * 20; // Používáme uložený směr
+            console.log('pushForce:', pushForce, 'impulseVelocity:', impulseVelocity); // Přidaný log
+            this.bedna.body.setVelocityX(impulseVelocity);
+            this.bedna.body.setVelocityY(0);
+            console.log('Aplikován impuls, duration:', duration, 'directionX:', this.pushDirectionX, 'impulseVelocity:', impulseVelocity);
+        }
+    }
 
     handleCollision(chlapik, bedna) {
-
-        console.log("DOŠLO KE KOLIZI!");
-        this.isPushing = true; // Nastavujeme isPushing při kolizi
-        this.chlapik.setMass(.5);
-        this.bedna.setMass(.5);
-
+        // console.log("DOŠLO KE KOLIZI! isPushing nastaveno na true");
+        // console.trace('Zásobník volání handleCollision:');
+        this.isPushing = true;
     }
+
+    handleBednaOverlapTarget(bedna, targetZone) {
+        console.log('Bedna se překrývá s cílovou zónou!');
+        // Zde můžeme později přidat logiku pro úspěch, například zastavení bedny, zobrazení zprávy atd.
+        // Prozatím můžeme bednu zastavit, aby "nezmizela" za zónou:
+        // bedna.body.setVelocityX(0);
+    }
+
+    zkontrolujDosaženíCíle() {
+        const targetLeft = this.targetZone.x - this.targetZone.width / 2;
+        const targetRight = this.targetZone.x + this.targetZone.width / 2;
+        const bednaStredX = this.bedna.x;
+        const toleranceRychlosti = 5; // Nastav si malou toleranci pro "stání"
+    
+        if (bednaStredX >= targetLeft && bednaStredX <= targetRight && Math.abs(this.bedna.body.velocity.x) < toleranceRychlosti) {
+            console.log('Bedna je v cílové zóně a stojí!');
+            this.bedna.body.setVelocityX(0); // Pro jistotu zastavíme
+            // this.gameWon();
+            this.targetZoneActive = true;
+        } else {
+            this.targetZoneActive = false;
+        }
+    }
+
 }
