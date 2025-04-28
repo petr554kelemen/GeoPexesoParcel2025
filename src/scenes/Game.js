@@ -99,31 +99,39 @@ export default class Game extends Phaser.Scene {
         this.bedna.setScale(bednaScale);
         this.bedna.setCollideWorldBounds(true);
         this.bedna.body.pushable = true;
-        this.bedna.body.linearDamping = 0.5;
+        this.bedna.body.linearDamping = 0.3;
         this.bedna.body.setSize(155, 120).setOffset(0, -30);
+        this.bedna.body.setMass(2); // Nebo zkus i vyšší hodnotu, např. 3 nebo 4
+        this.bedna.body.setGravity(0, 0);
+        this.bedna.body.setDamping(false);
+        this.bedna.body.slideFactor.set(0.15);
+
+        console.log(this.bedna.body.x);
 
         this.chlapik = this.physics.add.sprite(0, 0, 'clovicek-jde-atlas');
         this.chlapik.setOrigin(0.5, 1);
         this.chlapik.body.setSize(18, 100);
-        this.chlapik.body.setGravityY(0);
+        this.chlapik.body.setGravity(0, 0);
+        this.chlapik.body.setMass(2); // Nebo zkus i vyšší hodnotu, např. 3 nebo 4
         this.chlapik.setCollideWorldBounds(true);
+        this.chlapik.body.slideFactor.set(0.5);
         const nahodnaPoziceChlapika = this.najdiNahodnouPoziciProChlapika();
         this.chlapik.setPosition(nahodnaPoziceChlapika.x, nahodnaPoziceChlapika.y);
 
         this.pushDirectionX = 1;
 
         this.collider = this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
-        console.log('Hodnota this.collider po vytvoření:', this.collider); // Přidaný log
+        //console.log('Hodnota this.collider po vytvoření:', this.collider); // Přidaný log
 
         this.createAnimations();
 
         // Odskok bedny od okraje
         this.bedna.body.onWorldBounds = true;
-        const bounceSpeed = 10; // Nastavíme sílu odrazu
+        const bounceSpeed = 5; // Nastavíme sílu odrazu
 
-        
+
         this.physics.world.on('worldbounds', (body) => {
-            console.log("body:", body);
+            //console.log("body:", body);
             if (body.gameObject === this.bedna) {
                 if (body.blocked.left) {
                     body.setVelocityX(bounceSpeed);
@@ -137,7 +145,7 @@ export default class Game extends Phaser.Scene {
                 // Vertikální odraz prozatím vynecháme
             }
         });
-        
+
 
         const targetZoneX = this.scale.width / 2;
         const targetZoneY = 510; // Zhruba Y pozice bedny
@@ -167,12 +175,21 @@ export default class Game extends Phaser.Scene {
     update(time, delta) {
         this.chlapik.setVelocityX(0);
         this.chlapik.setVelocityY(0);
-    
+        const deltaTime = delta / 1000; // Převod delta na sekundy
+
         const isMovingManually = this.cursors.left.isDown || this.cursors.right.isDown || this.cursors.up.isDown || this.cursors.down.isDown || this.moveLeft || this.moveRight;
         const manualSpeed = 160;
-    
+
+        // Ruční aktualizace pozice bedny
+        //this.bedna.x += this.bedna.body.velocity.x * deltaTime;
+        //this.bedna.y += this.bedna.body.velocity.y * deltaTime;
+
+        // Ruční aktualizace pozice chlapíka
+        // this.chlapik.x += this.chlapik.body.velocity.x * deltaTime;
+        // this.chlapik.y += this.chlapik.body.velocity.y * deltaTime;
+
         console.log('isPushing:', this.isPushing);
-    
+
         if (this.cursors.left.isDown || this.moveLeft) {
             this.chlapik.setVelocityX(-manualSpeed);
             this.chlapik.flipX = true;
@@ -210,13 +227,13 @@ export default class Game extends Phaser.Scene {
                 this.isChargingPush = false;
                 const pushDuration = time - this.pushStartTime;
                 const pohybBehemTahu = Math.abs(this.chlapik.x - this.chlapikPocatecniPoziceXPriTahu);
-    
+
                 if (pushDuration >= this.casMinProTlak && pohybBehemTahu >= this.pohybMinProTlak) {
                     this.applyPushImpulse(pushDuration, this.pushDirectionX);
                 } else {
-                    console.log('Tlak zrušen: příliš krátký stisk nebo malý pohyb.');
+                    // console.log('Tlak zrušen: příliš krátký stisk nebo malý pohyb.');
                 }
-    
+
                 if (this.collider) {
                     this.collider.active = true;
                     this.collider = this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
@@ -225,6 +242,7 @@ export default class Game extends Phaser.Scene {
             }
         }
 
+        /*
         const bednaBounds = this.bedna.getBounds();
         const targetZoneRect = this.targetZone.getBounds();
 
@@ -237,19 +255,21 @@ export default class Game extends Phaser.Scene {
             this.coordinatesText.setText('');
             this.targetZoneActive = false;
         }
+        */
         // console.log('Souřadnice bedny v update: X:', this.bedna.x, 'Y:', this.bedna.y);
-        console.log('isPushing:', this.isPushing);
+        // console.log('isPushing:', this.isPushing);
         this.zkontrolujDosaženíCíle();
     }
 
-    applyPushImpulse(duration, directionX) {
+    applyPushImpulse(duration, directionX = 0) {
         if (this.bedna && this.bedna.body) {
-            const pushForce = duration / 500;
-            const impulseVelocity = this.pushDirectionX * pushForce * 20; // Používáme uložený směr
-            console.log('pushForce:', pushForce, 'impulseVelocity:', impulseVelocity); // Přidaný log
+            const fixedDuration = 150; // Dočasná konstanta pro dobu trvání (ms)
+            const pushForce = fixedDuration / 500;
+            const impulseVelocity = this.pushDirectionX * pushForce * 20;
+            //console.log('Dočasná duration:', fixedDuration, 'pushForce:', pushForce, 'impulseVelocity:', impulseVelocity);
             this.bedna.body.setVelocityX(impulseVelocity);
             this.bedna.body.setVelocityY(0);
-            console.log('Aplikován impuls, duration:', duration, 'directionX:', this.pushDirectionX, 'impulseVelocity:', impulseVelocity);
+            //console.log('Aplikován impuls (s pevnou dobou), velocity:', impulseVelocity);
         }
     }
 
@@ -271,9 +291,9 @@ export default class Game extends Phaser.Scene {
         const targetRight = this.targetZone.x + this.targetZone.width / 2;
         const bednaStredX = this.bedna.x;
         const toleranceRychlosti = 5; // Nastav si malou toleranci pro "stání"
-    
+
         if (bednaStredX >= targetLeft && bednaStredX <= targetRight && Math.abs(this.bedna.body.velocity.x) < toleranceRychlosti) {
-            console.log('Bedna je v cílové zóně a stojí!');
+            //console.log('Bedna je v cílové zóně a stojí!');
             this.bedna.body.setVelocityX(0); // Pro jistotu zastavíme
             // this.gameWon();
             this.targetZoneActive = true;
