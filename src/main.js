@@ -32,10 +32,10 @@ const config = {
         //    y: 0,
         //    width: this.sys.scale.width,
         //    height: this.sys.scale.height,
-        //    gravity: {
-        //        x: 0,
-        //        y: 0
-        //    },
+            gravity: {
+                x: 0,
+                y: 0
+            },
             checkCollision: {
         //        up: true,
         //        down: true,
@@ -45,15 +45,15 @@ const config = {
         //    customUpdate: false,
         //    fixedStep: true,
         //    fps: 24,
-            timeScale: 1,     // 2.0 = half speed, 0.5 = double speed
+        //    timeScale: 1,     // 2.0 = half speed, 0.5 = double speed
         //    customUpdate: false,
         //    overlapBias: 4,
         //    tileBias: 16,
-        //    forceX: false,
+            forceX: false,
         //    isPaused: false,
             debug: true,
-        //    debugShowBody: true,
-        //    debugShowStaticBody: true,
+            debugShowBody: true,
+            debugShowStaticBody: true,
             debugShowVelocity: true,
             debugBodyColor: 0xff00ff,
             debugStaticBodyColor: 0x0000ff,
