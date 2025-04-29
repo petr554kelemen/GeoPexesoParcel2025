@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { poziceMysi } from '../poziceMysi.js';
+//import { poziceMysi } from '../poziceMysi.js';
 
 export default class Game extends Phaser.Scene {
     constructor() {
@@ -91,94 +91,137 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
+        this.physics.world.enable(this);
         this.add.image(this.scale.width / 2, this.scale.height / 2, 'backgroundGame');
 
         const bednaScale = 0.7;
-        this.bedna = this.physics.add.sprite(this.scale.width / 2 + 100, 510, 'bedna-sprite');
-        this.bedna.setOrigin(0, 1);
-        this.bedna.setScale(bednaScale);
-        this.bedna.setCollideWorldBounds(true);
-        this.bedna.body.pushable = true;
-        this.bedna.body.linearDamping = 0.3;
-        this.bedna.body.setSize(155, 120).setOffset(0, -30);
-        this.bedna.body.setMass(2); // Nebo zkus i vyšší hodnotu, např. 3 nebo 4
-        this.bedna.body.setGravity(0, 0);
-        this.bedna.body.setDamping(false);
-        this.bedna.body.slideFactor.set(0.15);
+        const bednaWidth = 155 * bednaScale;
+        const bednaHeight = 120 * bednaScale;
+        this.bednaSprite = this.add.sprite(this.scale.width / 2 + 100, 510 - bednaHeight / 2, 'bedna-sprite').setOrigin(0.5).setScale(bednaScale);
+        this.physics.add.existing(this.bednaSprite);
+        this.bednaSprite.body.setCollideWorldBounds(true);
+        this.bednaSprite.body.pushable = true;
+        this.bednaSprite.body.linearDamping = .85;
+        this.bedna = this.bednaSprite;
 
-        console.log(this.bedna.body.x);
+        this.chlapikSprite = this.add.sprite(0, 0, 'clovicek-jde-atlas').setOrigin(0.5, 1); // Dočasné pozice
+        this.createAnimations();
+        this.chlapikSprite.play('animace-chuze', true);
+        this.physics.add.existing(this.chlapikSprite);
+        this.chlapikSprite.body.setSize(18, 100).setOffset(0, 0);
+        this.chlapik = this.chlapikSprite;
 
-        this.chlapik = this.physics.add.sprite(0, 0, 'clovicek-jde-atlas');
-        this.chlapik.setOrigin(0.5, 1);
-        this.chlapik.body.setSize(18, 100);
-        this.chlapik.body.setGravity(0, 0);
-        this.chlapik.body.setMass(2); // Nebo zkus i vyšší hodnotu, např. 3 nebo 4
-        this.chlapik.setCollideWorldBounds(true);
-        this.chlapik.body.slideFactor.set(0.5);
-        const nahodnaPoziceChlapika = this.najdiNahodnouPoziciProChlapika();
+        const nahodnaPoziceChlapika = this.najdiNahodnouPoziciProChlapika(); // Voláme funkci AŽ TEĎ
         this.chlapik.setPosition(nahodnaPoziceChlapika.x, nahodnaPoziceChlapika.y);
 
-        this.pushDirectionX = 1;
-
-        this.collider = this.physics.add.collider(this.chlapik, this.bedna, this.handleCollision, null, this);
-        //console.log('Hodnota this.collider po vytvoření:', this.collider); // Přidaný log
-
-        this.createAnimations();
+        this.collider = this.physics.add.collider(this.chlapikSprite, this.bednaSprite, this.handleCollision, null, this);
 
         // Odskok bedny od okraje
-        this.bedna.body.onWorldBounds = true;
-        const bounceSpeed = 5; // Nastavíme sílu odrazu
-
-
         this.physics.world.on('worldbounds', (body) => {
-            //console.log("body:", body);
-            if (body.gameObject === this.bedna) {
+            if (body === this.bednaSprite.body) {
+                const pushBackSpeed = 50;
+                const stopDelay = 600;
                 if (body.blocked.left) {
-                    body.setVelocityX(bounceSpeed);
-                    this.chlapik.body.setVelocityX(0); // Zde nulujeme rychlost chlapíka na ose X
+                    body.setVelocityX(pushBackSpeed);
+                    this.chlapikSprite.body.setVelocityX(0);
                     this.isPushing = false;
+                    this.time.delayedCall(stopDelay, () => {
+                        if (this.bednaSprite.body && this.bednaSprite.body.velocity.x > 0) {
+                            this.bednaSprite.body.setVelocityX(0);
+                        }
+                    });
                 } else if (body.blocked.right) {
-                    body.setVelocityX(-bounceSpeed);
-                    this.chlapik.body.setVelocityX(0); // Zde nulujeme rychlost chlapíka na ose X
+                    body.setVelocityX(-pushBackSpeed);
+                    this.chlapikSprite.body.setVelocityX(0);
                     this.isPushing = false;
+                    this.time.delayedCall(stopDelay, () => {
+                        if (this.bednaSprite.body && this.bednaSprite.body.velocity.x < 0) {
+                            this.bednaSprite.body.setVelocityX(0);
+                        }
+                    });
                 }
-                // Vertikální odraz prozatím vynecháme
             }
         });
 
-
         const targetZoneX = this.scale.width / 2;
-        const targetZoneY = 510; // Zhruba Y pozice bedny
-        const targetZoneWidth = 150; // Nastav si požadovanou šířku
-        const targetZoneHeight = this.bedna.height; // Nastav si požadovanou výšku
-
+        const targetZoneY = 510;
+        const targetZoneWidth = 150;
+        const targetZoneHeight = this.bednaSprite.height * this.bednaSprite.scaleY;
         this.targetZone = this.add.rectangle(targetZoneX, targetZoneY, targetZoneWidth, targetZoneHeight, 0x00ff00, 0.3).setOrigin(0.5, 0.5);
         this.physics.world.enable(this.targetZone);
-        this.targetZone.body.setImmovable(true); // Nastavíme jako statické těleso
-
-        this.targetZoneActive = false; // Proměnná pro sledování, zda je bedna v zóně
+        this.targetZone.body.setImmovable(true);
+        this.targetZoneActive = false;
         this.coordinatesText = this.add.text(10, 60, '', { fontSize: '16px', fill: '#fff' });
-
-        // Sledujeme překryv bedny a cílové zóny
-        this.physics.add.overlap(this.bedna, this.targetZone, this.handleBednaOverlapTarget, null, this);
+        this.physics.add.overlap(this.bednaSprite, this.targetZone, this.handleBednaOverlapTarget, null, this);
 
         this.cursors = this.input.keyboard.createCursorKeys();
-
         const buttonY = this.scale.height - 50;
         const buttonScale = 0.5;
         this.leftButton = this.add.image(50, buttonY, 'arrow_left').setInteractive().setAlpha(0.8).setScale(buttonScale).on('pointerdown', () => this.moveLeft = true).on('pointerup', () => this.moveLeft = false).on('pointerout', () => this.moveLeft = false);
         this.rightButton = this.add.image(this.scale.width - 50, buttonY, 'arrow_right').setInteractive().setAlpha(0.8).setScale(buttonScale).on('pointerdown', () => this.moveRight = true).on('pointerup', () => this.moveRight = false).on('pointerout', () => this.moveRight = false);
-
         this.chlapikInfoText = this.add.text(10, 20, '', { fontSize: '16px', fill: '#fff' });
     }
 
     update(time, delta) {
-        this.chlapik.setVelocityX(0);
-        this.chlapik.setVelocityY(0);
+        this.chlapik.body.setVelocityX(0); // SPRÁVNĚ
+        this.chlapik.body.setVelocityY(0);
         const deltaTime = delta / 1000; // Převod delta na sekundy
+
+        // Synchronizace pozice spritu chlapíka s jeho fyzickým tělem
+        this.chlapik.x = this.chlapik.body.x;
+        this.chlapik.y = this.chlapik.body.y;
+
+        // Synchronizace pozice spritu bedny s jejím fyzickým tělem
+        this.bednaSprite.x = this.bednaSprite.body.x;
+        this.bednaSprite.y = this.bednaSprite.body.y;
 
         const isMovingManually = this.cursors.left.isDown || this.cursors.right.isDown || this.cursors.up.isDown || this.cursors.down.isDown || this.moveLeft || this.moveRight;
         const manualSpeed = 160;
+
+        if (this.cursors.left.isDown || this.moveLeft) {
+            this.chlapik.setVelocityX(-manualSpeed);
+            this.chlapik.flipX = true;
+            if (this.isPushing) {
+                this.pushDirectionX = -1;
+                if (!this.isChargingPush && this.collider && this.collider.active) {
+                    this.isChargingPush = true;
+                    this.pushStartTime = time;
+                    // console.log('Začátek nabíjení tahu (LEFT)...');
+                }
+                this.chlapik.play('animace-tlaceni', true);
+            } else {
+                this.chlapik.play('animace-chuze', true);
+            }
+        } else if (this.cursors.right.isDown || this.moveRight) {
+            this.chlapik.setVelocityX(manualSpeed);
+            this.chlapik.flipX = false;
+            if (this.isPushing) {
+                this.pushDirectionX = 1;
+                if (!this.isChargingPush && this.collider && this.collider.active) {
+                    this.isChargingPush = true;
+                    this.pushStartTime = time;
+                    // console.log('Začátek nabíjení tahu (RIGHT)...');
+                }
+                this.chlapik.play('animace-tlaceni', true);
+            } else {
+                this.chlapik.play('animace-chuze', true);
+            }
+        } else {
+            this.chlapik.stop('animace-chuze');
+            this.chlapik.stop('animace-tlaceni');
+            if (this.isChargingPush) {
+                this.isChargingPush = false;
+                const pushDuration = time - this.pushStartTime;
+                //this.applyPushImpulse(pushDuration, this.pushDirectionX);
+                //console.log('Konec nabíjení tahu... Aplikován impuls.');
+            }
+        }
+
+        if (this.collider) {
+            console.log('Stav collideru v update:', this.collider.active);
+        }
+
+
 
         // Ruční aktualizace pozice bedny
         //this.bedna.x += this.bedna.body.velocity.x * deltaTime;
@@ -188,8 +231,9 @@ export default class Game extends Phaser.Scene {
         // this.chlapik.x += this.chlapik.body.velocity.x * deltaTime;
         // this.chlapik.y += this.chlapik.body.velocity.y * deltaTime;
 
-        console.log('isPushing:', this.isPushing);
+        //console.log('isPushing:', this.isPushing);
 
+        /*
         if (this.cursors.left.isDown || this.moveLeft) {
             this.chlapik.setVelocityX(-manualSpeed);
             this.chlapik.flipX = true;
@@ -241,6 +285,7 @@ export default class Game extends Phaser.Scene {
                 }
             }
         }
+        */
 
         /*
         const bednaBounds = this.bedna.getBounds();
@@ -258,10 +303,11 @@ export default class Game extends Phaser.Scene {
         */
         // console.log('Souřadnice bedny v update: X:', this.bedna.x, 'Y:', this.bedna.y);
         // console.log('isPushing:', this.isPushing);
-        this.zkontrolujDosaženíCíle();
+        //this.zkontrolujDosahCile();
     }
 
     applyPushImpulse(duration, directionX = 0) {
+        /*
         if (this.bedna && this.bedna.body) {
             const fixedDuration = 150; // Dočasná konstanta pro dobu trvání (ms)
             const pushForce = fixedDuration / 500;
@@ -271,22 +317,32 @@ export default class Game extends Phaser.Scene {
             this.bedna.body.setVelocityY(0);
             //console.log('Aplikován impuls (s pevnou dobou), velocity:', impulseVelocity);
         }
+        */
+
+        if (this.bedna && this.bedna.body) {
+            const pushForce = duration / 150; // Uprav tento faktor pro sílu impulsu
+            const impulseVelocity = directionX * pushForce * 200; // Uprav tento faktor pro rychlost
+            console.log('Doba stisku:', duration, 'Síla:', pushForce, 'Rychlost impulsu:', impulseVelocity);
+            this.bedna.body.setVelocityX(impulseVelocity);
+            this.bedna.body.setVelocityY(0);
+        }
     }
 
     handleCollision(chlapik, bedna) {
-        // console.log("DOŠLO KE KOLIZI! isPushing nastaveno na true");
-        // console.trace('Zásobník volání handleCollision:');
+        console.log("handleCollision se volá!");
         this.isPushing = true;
     }
 
     handleBednaOverlapTarget(bedna, targetZone) {
-        console.log('Bedna se překrývá s cílovou zónou!');
+        //console.log('Bedna se překrývá s cílovou zónou!');
         // Zde můžeme později přidat logiku pro úspěch, například zastavení bedny, zobrazení zprávy atd.
         // Prozatím můžeme bednu zastavit, aby "nezmizela" za zónou:
         // bedna.body.setVelocityX(0);
     }
 
-    zkontrolujDosaženíCíle() {
+    //prozatím zakomentováno
+    /*
+    zkontrolujDosahCile() {
         const targetLeft = this.targetZone.x - this.targetZone.width / 2;
         const targetRight = this.targetZone.x + this.targetZone.width / 2;
         const bednaStredX = this.bedna.x;
@@ -301,5 +357,6 @@ export default class Game extends Phaser.Scene {
             this.targetZoneActive = false;
         }
     }
+    */
 
 }
