@@ -59,6 +59,9 @@ export default class Game extends Phaser.Scene {
 
         this.rychlostChlapikaText = this.add.text(10, 10, '', { fontSize: '16px', fill: '#fff' });
         this.rychlostBednyText = this.add.text(10, 30, '', { fontSize: '16px', fill: '#fff' });
+
+        // Spustíme teleportaci hned na začátku hry
+        this.teleportujObjekty();
     }
 
     zneviditelniObjekty(callback) {
@@ -72,32 +75,23 @@ export default class Game extends Phaser.Scene {
     }
 
     teleportujObjekty() {
-        const deltaX = this.chlapik.x - this.bedna.x;
-        const levyOkraj = 50;
-        const pravyOkraj = this.scale.width - 50;
-        const horniOkraj = 50;
-        const dolniOkraj = this.scale.height - 50;
+        const vertikalniPosun = this.chlapik.body.center.y;
+        const konstantniVzdalenost = 100; // Nastav si požadovanou konstantní vzdálenost mezi nimi
 
-        if (this.bedna.x < 0) {
-            this.bedna.x = pravyOkraj;
-            this.chlapik.x = this.bedna.x + deltaX;
-        } else if (this.bedna.x > this.scale.width) {
-            this.bedna.x = levyOkraj;
-            this.chlapik.x = this.bedna.x + deltaX;
-        }
-
-        if (this.bedna.y < 0) {
-            this.bedna.y = dolniOkraj;
-            this.chlapik.y = this.bedna.y + (this.chlapik.y - this.bedna.y); // Zachování delta Y
-        } else if (this.bedna.y > this.scale.height) {
-            this.bedna.y = horniOkraj;
-            this.chlapik.y = this.bedna.y + (this.chlapik.y - this.bedna.y); // Zachování delta Y
-        }
-
-        // Zajištění, aby se chlapík a bedna nenarodili v cílové zóně (jednoduchá kontrola)
-        const bednaVCiloveZone = Phaser.Geom.Rectangle.Contains(this.cilovaZona, this.bedna.body.center.x, this.bedna.body.center.y);
-        if (bednaVCiloveZone) {
-            this.teleportujObjekty(); // Pokud se náhodou teleportují do cílové zóny, zkusíme to znovu
+        if (this.bedna.body.right > this.scale.width - 5) { // Bedna u pravého okraje
+            // Bedna blíže ke středu levé třetiny
+            const novaBednaX = this.scale.width / 6;
+            // Chlapík ještě více vlevo
+            const novaChlapikX = novaBednaX - konstantniVzdalenost;
+            this.chlapik.setPosition(novaChlapikX, vertikalniPosun);
+            this.bedna.setPosition(novaBednaX, vertikalniPosun);
+        } else if (this.bedna.body.left < 5) { // Bedna u levého okraje
+            // Bedna blíže ke středu pravé třetiny
+            const novaBednaX = this.scale.width * 5 / 6;
+            // Chlapík ještě více vpravo
+            const novaChlapikX = novaBednaX + konstantniVzdalenost;
+            this.chlapik.setPosition(novaChlapikX, vertikalniPosun);
+            this.bedna.setPosition(novaBednaX, vertikalniPosun);
         }
     }
 
@@ -168,17 +162,23 @@ export default class Game extends Phaser.Scene {
             else if (pohybDolu) this.chlapik.body.setVelocityY(100);
         }
 
-        const okrajovaVzdalenost = 20;
-        const bednaUOkrajeVlevo = this.bedna.x < okrajovaVzdalenost;
-        const bednaUOkrajeVpravo = this.bedna.x > this.scale.width - okrajovaVzdalenost;
-        const bednaUOkrajeNahore = this.bedna.y < okrajovaVzdalenost;
-        const bednaUOkrajeDole = this.bedna.y > this.scale.height - okrajovaVzdalenost;
+        //const okrajovaVzdalenost = 50;
+        const bednaUOkrajeVlevo = this.bedna.body.left < 5; // Levý okraj těla bedny je méně než 5 pixelů od levého okraje obrazovky
+        const bednaUOkrajeVpravo = this.bedna.body.right > this.scale.width - 5; // Pravý okraj těla bedny je více než 5 pixelů od pravého okraje obrazovky
+        const bednaUOkrajeNahore = this.bedna.body.top < 5; // Horní okraj těla bedny je méně než 5 pixelů od horního okraje obrazovky
+        const bednaUOkrajeDole = this.bedna.body.bottom > this.scale.height - 5; // Dolní okraj těla bedny je více než 5 pixelů od dolního okraje obrazovky
 
-        if ((bednaUOkrajeVlevo && pohybDoleva) || (bednaUOkrajeVpravo && pohybDoprava) || (bednaUOkrajeNahore && pohybNahoru) || (bednaUOkrajeDole && pohybDolu)) {
+        //console.log('Je bedna i levého okraje?', bednaUOkrajeVlevo);
+        //console.log('Je bedna u pravého okraje', bednaUOkrajeVpravo);
+
+        if ((bednaUOkrajeVlevo) || (bednaUOkrajeVpravo) || (bednaUOkrajeNahore) || (bednaUOkrajeDole)) {
             if (!this.teleportaceBezi) {
                 this.teleportaceBezi = true;
                 this.zneviditelniObjekty(() => {
                     this.teleportujObjekty();
+                    console.log('nové x body.center chlapíka: ', this.chlapik.body.center.x);
+                    console.log('nové x body.center bedny: ', this.bedna.body.center.x);
+                    
                     this.zviditelniObjekty(() => {
                         this.teleportaceBezi = false;
                     });
@@ -188,6 +188,7 @@ export default class Game extends Phaser.Scene {
             // Pokud bedna není u okraje, resetujeme příznaky teleportace
             this.teleportaceBezi = false;
             this.bedna.alpha = 1; // Zajistíme, že bedna je viditelná
+            this.chlapik.alpha = 1;
         }
 
         const jeBednaVCiloveZone = Phaser.Geom.Rectangle.Contains(this.cilovaZona, this.bedna.body.center.x, this.bedna.body.center.y);
@@ -204,5 +205,7 @@ export default class Game extends Phaser.Scene {
 
     muzeKolizovat(chlapik, bedna) {
         return true; // Pro teleportaci necháme kolize vždy povolené
+        //console.log();
+
     }
 }
