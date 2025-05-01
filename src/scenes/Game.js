@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { poziceMysi } from '../poziceMysi.js';
+//import { poziceMysi } from '../poziceMysi.js';
+import Napoveda from './UI/napoveda.js'; // Uprav cestu podle tvé struktury
 
 export default class Game extends Phaser.Scene {
     constructor() {
@@ -15,29 +16,61 @@ export default class Game extends Phaser.Scene {
         this.zviditelnovaniBezi = false;
         this.hraDokoncena = false;
         this.teleportaceBezi = false; // Nezapomeň inicializovat tuto proměnnou
+        this.napoveda = null;
     }
 
     preload() {
+        //this.load.image("background", "assets/bg.png");
         this.load.image("obrVlevo", "assets/3d-arrow-left.png");
         this.load.image("obrVpravo", "assets/3d-arrow-right.png");
     }
 
     create() {
         this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
+        const objPositionY = this.scale.canvas.height / 2 * 1.21;
+        console.log(this.scale.canvas.height);
+        
+        
+        // background
+		const background = this.add.image(500, 390, "backgroundGame");
+		background.blendMode = Phaser.BlendModes.SOURCE_OUT;
+		background.scaleX = 0.8784867183713885;
+		background.scaleY = 0.9624751673844308;
+		background.alpha = 0.8;
+		background.alphaTopLeft = 0.8;
+		background.alphaTopRight = 0.8;
+		background.alphaBottomLeft = 0.8;
+		background.alphaBottomRight = 0.8;
+        
 
-        this.chlapik = this.physics.add.sprite(100, this.scale.height / 2, 'obrVlevo');
+        this.chlapik = this.physics.add.sprite(100, objPositionY, 'obrVlevo');
         this.chlapik.setScale(0.5);
         this.chlapik.setCollideWorldBounds(true);
         this.chlapik.setBounce(0.2);
         this.chlapik.setMass(50);
         this.chlapik.setDrag(0.1);
 
-        this.bedna = this.physics.add.sprite(this.scale.width / 2, this.scale.height / 2, 'obrVpravo');
+        this.bedna = this.physics.add.sprite(this.chlapik.x + 60, objPositionY, 'obrVpravo');
         this.bedna.setScale(0.5);
         this.bedna.setCollideWorldBounds(true);
         this.bedna.setBounce(0.1);
         this.bedna.setMass(75);
         this.bedna.setDrag(this.vychoziTreniBedny);
+
+        /*
+        try {
+            const blurFxBedna = this.bedna.preFX.addBlur();
+            this.tweens.add({
+                targets: blurFxBedna,
+                strength: 0, // Zkusíme nějakou viditelnou hodnotu
+                duration: 2000,
+                yoyo: true,
+                repeat: -1
+            });
+        } catch (error) {
+            console.error("Chyba při inicializaci filtru rozmazání na bednu:", error);
+        }
+        */
 
         this.physics.add.collider(this.chlapik, this.bedna, null, this.muzeKolizovat, this);
 
@@ -45,13 +78,13 @@ export default class Game extends Phaser.Scene {
 
         // cilova zona
         const yPoziceCiloveZony = this.bedna.body.center.y;
-        console.log("pozice y z center:", yPoziceCiloveZony);
+        // console.log("pozice y z center:", yPoziceCiloveZony);
         const xPoziceCiloveZony = this.scale.width / 2;
 
         const cilovaZonaVnejsi = this.add.rectangle(xPoziceCiloveZony, yPoziceCiloveZony, 180, 80, 0xff0000).setOrigin(0.5).setAlpha(0.3); //cervema zona
         const cilovaZonaVnitrni = this.add.rectangle(xPoziceCiloveZony, yPoziceCiloveZony, 40, 40, 0x00ff00).setOrigin(0.5).setAlpha(0.5); //zelena zona
 
-        this.cilovaZona = cilovaZonaVnitrni.getBounds();
+        this.cilovaZonaVnitrniObjekt = cilovaZonaVnitrni; // Uložíme si referenci na herní objekt
 
         const nejvyssiHloubka = 1000; // Zvol si dostatečně vysoké číslo
         this.chlapik.setDepth(nejvyssiHloubka);
@@ -62,6 +95,33 @@ export default class Game extends Phaser.Scene {
 
         // Spustíme teleportaci hned na začátku hry
         this.teleportujObjekty();
+
+        // Spustime kod pro rozmazanou napovedu
+        // Vytvoření instance Napoveda a její inicializace
+        const napovedaString = `Testovací text rozmazání`;
+        const testText = this.add.text(this.cameras.main.centerX, 100, napovedaString, {
+            font: '24px Arial',
+            fill: '#ff0',
+            align: 'center'
+        }).setOrigin(0.5);
+
+        /*
+        try {
+            const blurFxTest = testText.preFX.addBlur();
+            this.tweens.add({
+                targets: blurFxTest,
+                strength: .75,
+                duration: 2000,
+                yoyo: true,
+                repeat: -1
+            });
+        } catch (error) {
+            console.error("Chyba při inicializaci filtru rozmazání textu v Game:", error);
+        }
+        */
+
+        this.napoveda = new Napoveda(this, this.cilovaZonaVnitrniObjekt); // Předáme herní objekt
+        this.napoveda.init();
     }
 
     zneviditelniObjekty(callback) {
@@ -191,16 +251,34 @@ export default class Game extends Phaser.Scene {
             this.chlapik.alpha = 1;
         }
 
-        const jeBednaVCiloveZone = Phaser.Geom.Rectangle.Contains(this.cilovaZona, this.bedna.body.center.x, this.bedna.body.center.y);
+        const bednaBounds = this.bedna.getBounds();
+        //console.log("this.cilovaZonaVnitrni:", this.cilovaZonaVnitrni); // Zkontroluj, co je cilovaZonaVnitrni
+        const cilovaZonaBounds = this.cilovaZonaVnitrniObjekt.getBounds(); // Používáme referenci na objekt
 
-        if (jeBednaVCiloveZone && !this.hraDokoncena) {
-            this.hraDokoncena = true;
-            console.log("Hra dokončena!");
-            // Zde můžeš přidat kód pro zobrazení vítězné obrazovky, zastavení hry atd.
+        // Definujeme "červenou" zónu jako oblast mezi mírně zvětšenou cílovou zónou a samotnou cílovou zónou
+        const cervenaZonaSirsi = new Phaser.Geom.Rectangle(
+            cilovaZonaBounds.x - 20,
+            cilovaZonaBounds.y - 20,
+            cilovaZonaBounds.width + 40,
+            cilovaZonaBounds.height + 40
+        );
+
+        // Zobrazíme nápovědu, pokud se bedna překrývá s širší zónou, ALE NEPŘEKRÝVÁ se s cílovou zónou
+        if (Phaser.Geom.Rectangle.Overlaps(cervenaZonaSirsi, bednaBounds) &&
+            !Phaser.Geom.Rectangle.Overlaps(cilovaZonaBounds, bednaBounds)) {
+            this.napoveda.zobrazit();
+        } else {
+            this.napoveda.skryt();
         }
 
-        this.rychlostChlapikaText.setText(`Chlapík (50kg) rychlost X: ${Math.floor(this.chlapik.body.velocity.x)}, Y: ${Math.floor(this.chlapik.body.velocity.y)}`);
-        this.rychlostBednyText.setText(`Bedna (75kg) rychlost X: ${Math.floor(this.bedna.body.velocity.x)}, Y: ${Math.floor(this.bedna.body.velocity.y)}`);
+        // Detekce překryvu bedny s cílovou zónou (zelenou)
+        if (Phaser.Geom.Rectangle.Overlaps(cilovaZonaBounds, bednaBounds)) {
+            console.log('Hra dokončena!');
+            this.bedna.setVelocity(0);
+        }
+    
+        //this.rychlostChlapikaText.setText(`Chlapík (50kg) rychlost X: ${Math.floor(this.chlapik.body.velocity.x)}, Y: ${Math.floor(this.chlapik.body.velocity.y)}`);
+        //this.rychlostBednyText.setText(`Bedna (75kg) rychlost X: ${Math.floor(this.bedna.body.velocity.x)}, Y: ${Math.floor(this.bedna.body.velocity.y)}`);
     }
 
     muzeKolizovat(chlapik, bedna) {
