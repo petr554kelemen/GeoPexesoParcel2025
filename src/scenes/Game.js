@@ -1,3 +1,4 @@
+// 1/5/2025 17:38
 import Phaser from 'phaser';
 //import { poziceMysi } from '../poziceMysi.js';
 import Napoveda from './UI/napoveda.js'; // Uprav cestu podle tvé struktury
