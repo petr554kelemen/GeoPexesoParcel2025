@@ -16,7 +16,7 @@ export default class Game extends Phaser.Scene {
         this.zviditelnovaniBezi = false;
         this.hraDokoncena = false;
         this.teleportaceBezi = false; // Nezapomeň inicializovat tuto proměnnou
-        this.napoveda = null;
+        //this.napoveda = null;
     }
 
     preload() {
@@ -98,30 +98,27 @@ export default class Game extends Phaser.Scene {
 
         // Spustime kod pro rozmazanou napovedu
         // Vytvoření instance Napoveda a její inicializace
-        const napovedaString = `Testovací text rozmazání`;
-        const testText = this.add.text(this.cameras.main.centerX, 100, napovedaString, {
+        this.napovedaText = this.add.text(this.cilovaZonaVnitrniObjekt.x, this.cilovaZonaVnitrniObjekt.y + this.cilovaZonaVnitrniObjekt.height / 2 + 20, `Nápověda: Klikni na bednu!`, {
             font: '24px Arial',
             fill: '#ff0',
             align: 'center'
         }).setOrigin(0.5);
-
-        /*
+        this.napovedaText.setVisible(false); // Na začátku skryjeme
+    
         try {
-            const blurFxTest = testText.preFX.addBlur();
+            const blurFxVGame = this.napovedaText.preFX.addBlur();
             this.tweens.add({
-                targets: blurFxTest,
-                strength: .75,
-                duration: 2000,
+                targets: blurFxVGame,
+                strength: 0,
+                duration: 1000,
                 yoyo: true,
                 repeat: -1
             });
         } catch (error) {
             console.error("Chyba při inicializaci filtru rozmazání textu v Game:", error);
         }
-        */
-
-        this.napoveda = new Napoveda(this, this.cilovaZonaVnitrniObjekt); // Předáme herní objekt
-        this.napoveda.init();
+    
+        this.napoveda = new Napoveda(this, this.cilovaZonaVnitrniObjekt);
     }
 
     zneviditelniObjekty(callback) {
@@ -266,9 +263,9 @@ export default class Game extends Phaser.Scene {
         // Zobrazíme nápovědu, pokud se bedna překrývá s širší zónou, ALE NEPŘEKRÝVÁ se s cílovou zónou
         if (Phaser.Geom.Rectangle.Overlaps(cervenaZonaSirsi, bednaBounds) &&
             !Phaser.Geom.Rectangle.Overlaps(cilovaZonaBounds, bednaBounds)) {
-            this.napoveda.zobrazit();
+            //this.napoveda.zobrazit();
         } else {
-            this.napoveda.skryt();
+            //this.napoveda.skryt();
         }
 
         // Detekce překryvu bedny s cílovou zónou (zelenou)
