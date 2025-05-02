@@ -27,6 +27,8 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
+        console.log("ZAČÁTEK METODY CREATE() SCÉNY S TLAČÍTKY!");
+
         this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
         const objPositionY = this.scale.canvas.height / 2 * 1.21;
         console.log(this.scale.canvas.height);
@@ -98,7 +100,7 @@ export default class Game extends Phaser.Scene {
         this.teleportujObjekty();
 
         const buttonSize = 80; // Zvětšíme trochu velikost pro lepší dotyk
-        const buttonAlpha = 0.5;
+        const buttonAlpha = 1;
         const buttonY = this.cameras.main.height - buttonSize / 2 - 40; // Umístíme je níže
 
         // Tlačítko doleva (levá strana dolní části obrazovky)
@@ -116,6 +118,9 @@ export default class Game extends Phaser.Scene {
         // Zajistíme, aby tlačítka zůstala na svém místě
         this.buttonLeft.setScrollFactor(0);
         this.buttonRight.setScrollFactor(0);
+
+        console.log("Šířka kamery:", this.cameras.main.width);
+        console.log("Výška kamery:", this.cameras.main.height);
 
         this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt); // Používáme odkaz z objektu
 
@@ -163,50 +168,56 @@ export default class Game extends Phaser.Scene {
     }
 
     vyhodnotCilovouZonu() {
-        if (!this.hraDokoncena) {
-            const bednaStredX = this.bedna.body.center.x;
-            const bednaStredY = this.bedna.body.center.y;
-            const rychlostBednyX = Math.abs(this.bedna.body.velocity.x);
-            const rychlostBednyY = Math.abs(this.bedna.body.velocity.y);
-            const maximalniRychlostProDokonceni = 10;
+        const bednaStredX = this.bedna.body.center.x;
+        const bednaStredY = this.bedna.body.center.y;
+        const rychlostBednyX = Math.abs(this.bedna.body.velocity.x);
+        const rychlostBednyY = Math.abs(this.bedna.body.velocity.y);
+        const maximalniRychlostProDokonceni = 10;
+        const txtCervena = "N50 00 000 E 017 00 000";
+        const txtZelena = "N50 49 111 E 017 29 999";
 
-            const zelenaZonaBounds = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
-            const jeBednaStredVZeleneZone = Phaser.Geom.Rectangle.Contains(zelenaZonaBounds, bednaStredX, bednaStredY);
-            const jeBednaPomalna = rychlostBednyX < maximalniRychlostProDokonceni && rychlostBednyY < maximalniRychlostProDokonceni;
+        const zelenaZonaBounds = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
+        const jeBednaStredVZeleneZone = Phaser.Geom.Rectangle.Contains(zelenaZonaBounds, bednaStredX, bednaStredY);
+        const jeBednaPomalna = rychlostBednyX < maximalniRychlostProDokonceni && rychlostBednyY < maximalniRychlostProDokonceni;
 
-            const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
-            const jeBednaStredVCerveneZone = Phaser.Geom.Rectangle.Contains(cervenaZonaBounds, bednaStredX, bednaStredY);
+        const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
+        const jeBednaStredVCerveneZone = Phaser.Geom.Rectangle.Contains(cervenaZonaBounds, bednaStredX, bednaStredY);
 
-            if (jeBednaStredVZeleneZone && jeBednaPomalna) {
+        if (jeBednaStredVZeleneZone) {
+            this.cilovaZonaData.souradniceText.setText(txtZelena).setStyle({ fill: '#00ff00', fontStyle: '', shadowBlur: 0 }).setVisible(true);
+            if (jeBednaPomalna && !this.hraDokoncena) {
                 console.log('Hra dokončena (střed bedny v zóně a bedna je pomalá)!');
                 this.hraDokoncena = true;
                 this.bedna.setVelocity(0);
-                this.cilovaZonaData.souradniceText.setStyle({ fill: '#00ff00' }).setVisible(true);
                 if (this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
                     this.cilovaZonaData.souradniceText.preFX.clear();
                     this.cilovaZonaData.blurFx = null;
                 }
                 this.cilovaZonaData.prekryvaZelenou = true;
                 this.cilovaZonaData.prekryvaCervenou = false;
-            } else if (jeBednaStredVCerveneZone) {
-                if (!this.cilovaZonaData.prekryvaCervenou) {
-                    console.log("Střed bedny vstoupil do červené zóny!");
-                    this.cilovaZonaData.souradniceText.setStyle({ fill: '#ff0000' }).setVisible(true);
-                    if (!this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
-                        this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.preFX.addBlur();
-                        this.tweens.add({ targets: this.cilovaZonaData.blurFx, strength: 0.75, duration: 1000, yoyo: true, repeat: -1 });
-                    }
-                    this.cilovaZonaData.prekryvaCervenou = true;
-                    this.cilovaZonaData.prekryvaZelenou = false;
-                }
-            } else {
-                this.cilovaZonaData.souradniceText.setVisible(false);
+            } else if (!this.cilovaZonaData.prekryvaZelenou) {
+                console.log("Bedna vstoupila do zelené zóny!");
+                this.cilovaZonaData.prekryvaZelenou = true;
                 this.cilovaZonaData.prekryvaCervenou = false;
-                this.cilovaZonaData.prekryvaZelenou = false;
-                if (this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
-                    this.cilovaZonaData.souradniceText.preFX.clear();
-                    this.cilovaZonaData.blurFx = null;
+            }
+        } else if (jeBednaStredVCerveneZone) {
+            this.cilovaZonaData.souradniceText.setText(txtCervena).setStyle({ fill: '#ff0000', fontStyle: '', shadowBlur: 2 }).setVisible(true);
+            if (!this.cilovaZonaData.prekryvaCervenou) {
+                console.log("Střed bedny vstoupil do červené zóny!");
+                if (!this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
+                    this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.preFX.addBlur();
+                    this.tweens.add({ targets: this.cilovaZonaData.blurFx, strength: 1.5, duration: 1000, yoyo: true, repeat: -1 });
                 }
+                this.cilovaZonaData.prekryvaCervenou = true;
+                this.cilovaZonaData.prekryvaZelenou = false;
+            }
+        } else {
+            this.cilovaZonaData.souradniceText.setVisible(false);
+            this.cilovaZonaData.prekryvaCervenou = false;
+            this.cilovaZonaData.prekryvaZelenou = false;
+            if (this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
+                this.cilovaZonaData.souradniceText.preFX.clear();
+                this.cilovaZonaData.blurFx = null;
             }
         }
     }
