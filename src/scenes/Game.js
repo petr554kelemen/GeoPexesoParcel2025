@@ -91,8 +91,32 @@ export default class Game extends Phaser.Scene {
         // Používáme this.cilovaZonaData.souradniceText místo this.coordinatesText
         this.cilovaZonaData.souradniceText.setPosition(this.cilovaZonaData.xStred, this.cilovaZonaData.yStred - 30);
 
+        this.vytvorTestovaciKlonyZon(); // Voláme funkci pro vytvoření klonů
+
         this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt); // Používáme odkaz z objektu
 
+    }
+
+    vytvorTestovaciKlonyZon() {
+        const posunX = this.scale.width / 2;
+
+        // Klonujeme červenou zónu
+        this.testCervenaZonaKlon = this.add.rectangle(
+            this.cilovaZonaData.cervenaZonaObjekt.x + posunX - (this.scale.width / 2 - this.cilovaZonaData.cervenaZonaObjekt.x),
+            this.cilovaZonaData.cervenaZonaObjekt.y,
+            this.cilovaZonaData.cervenaZonaObjekt.width,
+            this.cilovaZonaData.cervenaZonaObjekt.height,
+            0xff0000
+        ).setOrigin(0.5).setAlpha(0.3);
+
+        // Klonujeme zelenou zónu
+        this.testZelenaZonaKlon = this.add.rectangle(
+            this.cilovaZonaData.zelenaZonaObjekt.x + posunX - (this.scale.width / 2 - this.cilovaZonaData.zelenaZonaObjekt.x),
+            this.cilovaZonaData.zelenaZonaObjekt.y,
+            this.cilovaZonaData.zelenaZonaObjekt.width,
+            this.cilovaZonaData.zelenaZonaObjekt.height,
+            0x00ff00
+        ).setOrigin(0.5).setAlpha(0.5);
     }
 
     zneviditelniObjekty(callback) {
@@ -211,7 +235,7 @@ export default class Game extends Phaser.Scene {
         // Detekce překryvu bedny s cílovou zónou (zelenou)
         if (Phaser.Geom.Rectangle.Overlaps(zelenaZonaBounds, bednaBounds)) {
             console.log('Hra dokončena!');
-            this.bedna.setVelocity(0);
+            //this.bedna.setVelocity(0);
         }
 
         // Definujeme "červenou" zónu jako oblast mezi mírně zvětšenou cílovou zónou a samotnou cílovou zónou
