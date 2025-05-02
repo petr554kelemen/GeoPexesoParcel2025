@@ -119,8 +119,16 @@ export default class Game extends Phaser.Scene {
         this.buttonLeft.setScrollFactor(0);
         this.buttonRight.setScrollFactor(0);
 
-        console.log("Šířka kamery:", this.cameras.main.width);
-        console.log("Výška kamery:", this.cameras.main.height);
+        this.startTime = 0;
+        this.runningTime = 0;
+        this.stopkyText = this.add.text(this.cameras.main.width - 20, 20, "00:00", {
+            font: '24px Arial',
+            fill: '#fff',
+            align: 'right'
+        }).setOrigin(1, 0).setScrollFactor(0); // Umístění v pravém horním rohu a fixní na obrazovce
+
+        this.stopkyBezi = false; // Příznak, zda stopky běží
+        this.isStop = false;
 
         this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt); // Používáme odkaz z objektu
 
@@ -362,6 +370,29 @@ export default class Game extends Phaser.Scene {
 
         //this.rychlostChlapikaText.setText(`Chlapík (50kg) rychlost X: ${Math.floor(this.chlapik.body.velocity.x)}, Y: ${Math.floor(this.chlapik.body.velocity.y)}`);
         //this.rychlostBednyText.setText(`Bedna (75kg) rychlost X: ${Math.floor(this.bedna.body.velocity.x)}, Y: ${Math.floor(this.bedna.body.velocity.y)}`);
+
+        this.updateStopky(time, this.isStop);
+    }
+
+    updateStopky(time, isStop) {
+        if (!this.hraDokoncena) { // Přidali jsme tuto podmínku
+            if (!this.stopkyBezi) {
+                this.startTime = time;
+                this.stopkyBezi = true;
+            }
+    
+            if (this.stopkyBezi) {
+                this.runningTime = time - this.startTime;
+                const minutes = Math.floor(this.runningTime / 60000).toString().padStart(2, '0');
+                const seconds = Math.floor((this.runningTime % 60000) / 1000).toString().padStart(2, '0');
+                const milliseconds = Math.floor((this.runningTime % 1000) / 10).toString().padStart(2, '0');
+                this.stopkyText.setText(`${minutes}:${seconds}:${milliseconds}`);
+            }
+        }
+
+        if (isStop) {
+            console.log('destroy stopky');
+        }
     }
 
     muzeKolizovat(_chlapik, _bedna) {
