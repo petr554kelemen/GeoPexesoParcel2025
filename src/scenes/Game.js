@@ -64,14 +64,24 @@ export default class Game extends Phaser.Scene {
         const xStredZony = this.scale.width / 2;
         const yStredZony = this.bedna.body.center.y;
 
+        const vyskaChlapika = 120; // Předpokládaná výška postavy
+        const mezeraNadChlapikem = 30; // Zvětšil jsem mezeru pro jistotu
+
         this.cilovaZonaData = {
             xStred: xStredZony,
             yStred: yStredZony,
             cervenaZonaObjekt: this.add.rectangle(xStredZony, yStredZony, 180, 80, 0xff0000).setOrigin(0.5).setAlpha(0.3), // cervena zona
             zelenaZonaObjekt: this.add.rectangle(xStredZony, yStredZony, 40, 40, 0x00ff00).setOrigin(0.5).setAlpha(0.5), // zelena zona
-            souradniceText: this.add.text(xStredZony, yStredZony - 30, "N 50°00.000 E017°00.000", {
-                font: '20px Arial',
-                align: 'center'
+            souradniceText: this.add.text(xStredZony, 30 + vyskaChlapika / 2 + mezeraNadChlapikem, "N 50°00.000 E 017°00.000", {
+                font: '48px Georgia',
+                align: 'center',
+                shadow: {
+                    offsetX: 2,
+                    offsetY: 2,
+                    color: '#000',
+                    blur: 2,
+                    fill: true
+                }
             }).setOrigin(0.5).setVisible(false),
             blurFx: null,
             prekryvaCervenou: false,
@@ -88,35 +98,9 @@ export default class Game extends Phaser.Scene {
         this.teleportujObjekty();
 
         // Nastavime a spustime kod pro rozmazanou napovedu (NYNÍ PO DEFINICI ZÓNY)
-        // Používáme this.cilovaZonaData.souradniceText místo this.coordinatesText
-        this.cilovaZonaData.souradniceText.setPosition(this.cilovaZonaData.xStred, this.cilovaZonaData.yStred - 30);
-
-        this.vytvorTestovaciKlonyZon(); // Voláme funkci pro vytvoření klonů
 
         this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt); // Používáme odkaz z objektu
 
-    }
-
-    vytvorTestovaciKlonyZon() {
-        const posunX = this.scale.width / 2;
-
-        // Klonujeme červenou zónu
-        this.testCervenaZonaKlon = this.add.rectangle(
-            this.cilovaZonaData.cervenaZonaObjekt.x + posunX - (this.scale.width / 2 - this.cilovaZonaData.cervenaZonaObjekt.x),
-            this.cilovaZonaData.cervenaZonaObjekt.y,
-            this.cilovaZonaData.cervenaZonaObjekt.width,
-            this.cilovaZonaData.cervenaZonaObjekt.height,
-            0xff0000
-        ).setOrigin(0.5).setAlpha(0.3);
-
-        // Klonujeme zelenou zónu
-        this.testZelenaZonaKlon = this.add.rectangle(
-            this.cilovaZonaData.zelenaZonaObjekt.x + posunX - (this.scale.width / 2 - this.cilovaZonaData.zelenaZonaObjekt.x),
-            this.cilovaZonaData.zelenaZonaObjekt.y,
-            this.cilovaZonaData.zelenaZonaObjekt.width,
-            this.cilovaZonaData.zelenaZonaObjekt.height,
-            0x00ff00
-        ).setOrigin(0.5).setAlpha(0.5);
     }
 
     zneviditelniObjekty(callback) {
@@ -131,7 +115,7 @@ export default class Game extends Phaser.Scene {
 
     teleportujObjekty() {
         const vertikalniPosun = this.chlapik.body.center.y;
-        const konstantniVzdalenost = 70; // Nastav si požadovanou konstantní vzdálenost mezi nimi
+        const konstantniVzdalenost = 50; // Nastav si požadovanou konstantní vzdálenost mezi nimi
 
         if (this.bedna.body.right > this.scale.width - 5) { // Bedna u pravého okraje
             // Bedna blíže ke středu levé třetiny
@@ -253,9 +237,6 @@ export default class Game extends Phaser.Scene {
         const bednaUOkrajeVpravo = this.bedna.body.right > this.scale.width - 5; // Pravý okraj těla bedny je více než 5 pixelů od pravého okraje obrazovky
         const bednaUOkrajeNahore = this.bedna.body.top < 5; // Horní okraj těla bedny je méně než 5 pixelů od horního okraje obrazovky
         const bednaUOkrajeDole = this.bedna.body.bottom > this.scale.height - 5; // Dolní okraj těla bedny je více než 5 pixelů od dolního okraje obrazovky
-
-        //console.log('Je bedna i levého okraje?', bednaUOkrajeVlevo);
-        //console.log('Je bedna u pravého okraje', bednaUOkrajeVpravo);
 
         if ((bednaUOkrajeVlevo) || (bednaUOkrajeVpravo) || (bednaUOkrajeNahore) || (bednaUOkrajeDole)) {
             if (!this.teleportaceBezi) {
