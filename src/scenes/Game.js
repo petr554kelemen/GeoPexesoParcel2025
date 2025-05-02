@@ -97,7 +97,25 @@ export default class Game extends Phaser.Scene {
 
         this.teleportujObjekty();
 
-        // Nastavime a spustime kod pro rozmazanou napovedu (NYNÍ PO DEFINICI ZÓNY)
+        const buttonSize = 80; // Zvětšíme trochu velikost pro lepší dotyk
+        const buttonAlpha = 0.5;
+        const buttonY = this.cameras.main.height - buttonSize / 2 - 40; // Umístíme je níže
+
+        // Tlačítko doleva (levá strana dolní části obrazovky)
+        this.buttonLeft = this.add.rectangle(buttonSize / 2 + 40, buttonY, buttonSize, buttonSize, 0x888888).setAlpha(buttonAlpha).setInteractive();
+        this.buttonLeft.on('pointerdown', () => this.cursors.left.isDown = true);
+        this.buttonLeft.on('pointerup', () => this.cursors.left.isDown = false);
+        this.buttonLeft.on('pointerout', () => this.cursors.left.isDown = false);
+
+        // Tlačítko doprava (pravá strana dolní části obrazovky)
+        this.buttonRight = this.add.rectangle(this.cameras.main.width - buttonSize / 2 - 40, buttonY, buttonSize, buttonSize, 0x888888).setAlpha(buttonAlpha).setInteractive();
+        this.buttonRight.on('pointerdown', () => this.cursors.right.isDown = true);
+        this.buttonRight.on('pointerup', () => this.cursors.right.isDown = false);
+        this.buttonRight.on('pointerout', () => this.cursors.right.isDown = false);
+
+        // Zajistíme, aby tlačítka zůstala na svém místě
+        this.buttonLeft.setScrollFactor(0);
+        this.buttonRight.setScrollFactor(0);
 
         this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt); // Používáme odkaz z objektu
 
