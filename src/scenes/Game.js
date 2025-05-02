@@ -160,7 +160,56 @@ export default class Game extends Phaser.Scene {
         });
     }
 
-    update(time, delta) {
+    vyhodnotCilovouZonu() {
+        if (!this.hraDokoncena) {
+            const bednaStredX = this.bedna.body.center.x;
+            const bednaStredY = this.bedna.body.center.y;
+            const rychlostBednyX = Math.abs(this.bedna.body.velocity.x);
+            const rychlostBednyY = Math.abs(this.bedna.body.velocity.y);
+            const maximalniRychlostProDokonceni = 10;
+
+            const zelenaZonaBounds = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
+            const jeBednaStredVZeleneZone = Phaser.Geom.Rectangle.Contains(zelenaZonaBounds, bednaStredX, bednaStredY);
+            const jeBednaPomalna = rychlostBednyX < maximalniRychlostProDokonceni && rychlostBednyY < maximalniRychlostProDokonceni;
+
+            const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
+            const jeBednaStredVCerveneZone = Phaser.Geom.Rectangle.Contains(cervenaZonaBounds, bednaStredX, bednaStredY);
+
+            if (jeBednaStredVZeleneZone && jeBednaPomalna) {
+                console.log('Hra dokončena (střed bedny v zóně a bedna je pomalá)!');
+                this.hraDokoncena = true;
+                this.bedna.setVelocity(0);
+                this.cilovaZonaData.souradniceText.setStyle({ fill: '#00ff00' }).setVisible(true);
+                if (this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
+                    this.cilovaZonaData.souradniceText.preFX.clear();
+                    this.cilovaZonaData.blurFx = null;
+                }
+                this.cilovaZonaData.prekryvaZelenou = true;
+                this.cilovaZonaData.prekryvaCervenou = false;
+            } else if (jeBednaStredVCerveneZone) {
+                if (!this.cilovaZonaData.prekryvaCervenou) {
+                    console.log("Střed bedny vstoupil do červené zóny!");
+                    this.cilovaZonaData.souradniceText.setStyle({ fill: '#ff0000' }).setVisible(true);
+                    if (!this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
+                        this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.preFX.addBlur();
+                        this.tweens.add({ targets: this.cilovaZonaData.blurFx, strength: 0.75, duration: 1000, yoyo: true, repeat: -1 });
+                    }
+                    this.cilovaZonaData.prekryvaCervenou = true;
+                    this.cilovaZonaData.prekryvaZelenou = false;
+                }
+            } else {
+                this.cilovaZonaData.souradniceText.setVisible(false);
+                this.cilovaZonaData.prekryvaCervenou = false;
+                this.cilovaZonaData.prekryvaZelenou = false;
+                if (this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
+                    this.cilovaZonaData.souradniceText.preFX.clear();
+                    this.cilovaZonaData.blurFx = null;
+                }
+            }
+        }
+    }
+
+    update(time, _delta) {
         let tlaciSmer = null;
         let pohybDoleva = this.cursors.left.isDown;
         let pohybDoprava = this.cursors.right.isDown;
@@ -232,74 +281,80 @@ export default class Game extends Phaser.Scene {
         const zelenaZonaBounds = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
         const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds(); // Používáme objekt pro červenou zónu
 
+        // *******************************************************************
+        // ZAKOMENTUJ TENTO BLOK KÓDU - STARÁ LOGIKA VYHODNOCOVÁNÍ ZÓN
+        // *******************************************************************
         // Detekce překryvu bedny s cílovou zónou (zelenou)
-        if (Phaser.Geom.Rectangle.Overlaps(zelenaZonaBounds, bednaBounds)) {
-            console.log('Hra dokončena!');
-            //this.bedna.setVelocity(0);
-        }
+        // if (Phaser.Geom.Rectangle.Overlaps(zelenaZonaBounds, bednaBounds)) {
+        //     console.log('Hra dokončena!');
+        //     //this.bedna.setVelocity(0);
+        // }
 
-        // Definujeme "červenou" zónu jako oblast mezi mírně zvětšenou cílovou zónou a samotnou cílovou zónou
-        const cervenaZonaSirsi = new Phaser.Geom.Rectangle(
-            zelenaZonaBounds.x - 20,
-            zelenaZonaBounds.y - 20,
-            zelenaZonaBounds.width + 40,
-            zelenaZonaBounds.height + 40
-        );
+        // // Definujeme "červenou" zónu jako oblast mezi mírně zvětšenou cílovou zónou a samotnou cílovou zónou
+        // const cervenaZonaSirsi = new Phaser.Geom.Rectangle(
+        //     zelenaZonaBounds.x - 20,
+        //     zelenaZonaBounds.y - 20,
+        //     zelenaZonaBounds.width + 40,
+        //     zelenaZonaBounds.height + 40
+        // );
 
-        // Zobrazíme nápovědu, pokud se bedna překrývá s širší zónou, ALE NEPŘEKRÝVÁ se s cílovou zónou
-        if (Phaser.Geom.Rectangle.Overlaps(cervenaZonaSirsi, bednaBounds) &&
-            !Phaser.Geom.Rectangle.Overlaps(zelenaZonaBounds, bednaBounds)) {
-            //this.napoveda.zobrazit();
-        } else {
-            //this.napoveda.skryt();
-        }
+        // // Zobrazíme nápovědu, pokud se bedna překrývá s širší zónou, ALE NEPŘEKRÝVÁ se s cílovou zónou
+        // if (Phaser.Geom.Rectangle.Overlaps(cervenaZonaSirsi, bednaBounds) &&
+        //     !Phaser.Geom.Rectangle.Overlaps(zelenaZonaBounds, bednaBounds)) {
+        //     //this.napoveda.zobrazit();
+        // } else {
+        //     //this.napoveda.skryt();
+        // }
 
         // Kontrola překryvu bedny s červenou zónou
-        if (Phaser.Geom.Rectangle.Overlaps(cervenaZonaBounds, bednaBounds)) {
-            if (!this.cilovaZonaData.prekryvaCervenou) {
-                console.log("Bedna vstoupila do červené zóny!");
-                this.cilovaZonaData.souradniceText.setStyle({ fill: '#ff0000' }); // Červená barva
-                if (!this.cilovaZonaData.blurFx) {
-                    this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.preFX.addBlur();
-                    this.tweens.add({
-                        targets: this.cilovaZonaData.blurFx,
-                        strength: 10,
-                        duration: 1000,
-                        yoyo: true,
-                        repeat: -1
-                    });
-                }
-                this.cilovaZonaData.souradniceText.setVisible(true);
-                this.cilovaZonaData.prekryvaCervenou = true;
-                this.cilovaZonaData.prekryvaZelenou = false;
-            }
-        } else if (Phaser.Geom.Rectangle.Overlaps(zelenaZonaBounds, bednaBounds)) {
-            if (!this.cilovaZonaData.prekryvaZelenou) {
-                console.log("Bedna vstoupila do zelené zóny!");
-                this.cilovaZonaData.souradniceText.setStyle({ fill: '#00ff00' }); // Zelená barva
-                if (this.cilovaZonaData.blurFx) {
-                    this.cilovaZonaData.souradniceText.preFX.clear(); // Odstraníme efekt rozmazání
-                    this.cilovaZonaData.blurFx = null;
-                }
-                this.cilovaZonaData.souradniceText.setVisible(true);
-                this.cilovaZonaData.prekryvaZelenou = true;
-                this.cilovaZonaData.prekryvaCervenou = false;
-            }
-        } else {
-            this.cilovaZonaData.souradniceText.setVisible(false);
-            this.cilovaZonaData.prekryvaCervenou = false;
-            this.cilovaZonaData.prekryvaZelenou = false;
-            if (this.cilovaZonaData.blurFx) {
-                this.cilovaZonaData.souradniceText.preFX.clear();
-                this.cilovaZonaData.blurFx = null;
-            }
-        }
+        // if (Phaser.Geom.Rectangle.Overlaps(cervenaZonaBounds, bednaBounds)) {
+        //     if (!this.cilovaZonaData.prekryvaCervenou) {
+        //         console.log("Bedna vstoupila do červené zóny!");
+        //         this.cilovaZonaData.souradniceText.setStyle({ fill: '#ff0000' }); // Červená barva
+        //         if (!this.cilovaZonaData.blurFx) {
+        //             this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.preFX.addBlur();
+        //             this.tweens.add({
+        //                 targets: this.cilovaZonaData.blurFx,
+        //                 strength: 10,
+        //                 duration: 1000,
+        //                 yoyo: true,
+        //                 repeat: -1
+        //             });
+        //         }
+        //         this.cilovaZonaData.souradniceText.setVisible(true);
+        //         this.cilovaZonaData.prekryvaCervenou = true;
+        //         this.cilovaZonaData.prekryvaZelenou = false;
+        //     }
+        // } else if (Phaser.Geom.Rectangle.Overlaps(zelenaZonaBounds, bednaBounds)) {
+        //     if (!this.cilovaZonaData.prekryvaZelenou) {
+        //         console.log("Bedna vstoupila do zelené zóny!");
+        //         this.cilovaZonaData.souradniceText.setStyle({ fill: '#00ff00' }); // Zelená barva
+        //         if (this.cilovaZonaData.blurFx) {
+        //             this.cilovaZonaData.souradniceText.preFX.clear(); // Odstraníme efekt rozmazání
+        //             this.cilovaZonaData.blurFx = null;
+        //         }
+        //         this.cilovaZonaData.souradniceText.setVisible(true);
+        //         this.cilovaZonaData.prekryvaZelenou = true;
+        //         this.cilovaZonaData.prekryvaCervenou = false;
+        //     }
+        // } else {
+        //     this.cilovaZonaData.souradniceText.setVisible(false);
+        //     this.cilovaZonaData.prekryvaCervenou = false;
+        //     this.cilovaZonaData.prekryvaZelenou = false;
+        //     if (this.cilovaZonaData.blurFx) {
+        //         this.cilovaZonaData.souradniceText.preFX.clear();
+        //         this.cilovaZonaData.blurFx = null;
+        //     }
+        // }
+        // *******************************************************************
+
+        this.vyhodnotCilovouZonu(); // Voláme naši novou funkci pro vyhodnocení zón
 
         //this.rychlostChlapikaText.setText(`Chlapík (50kg) rychlost X: ${Math.floor(this.chlapik.body.velocity.x)}, Y: ${Math.floor(this.chlapik.body.velocity.y)}`);
         //this.rychlostBednyText.setText(`Bedna (75kg) rychlost X: ${Math.floor(this.bedna.body.velocity.x)}, Y: ${Math.floor(this.bedna.body.velocity.y)}`);
     }
 
-    muzeKolizovat(chlapik, bedna) {
+    muzeKolizovat(_chlapik, _bedna) {
         return true; // Pro teleportaci necháme kolize vždy povolené
         //console.log();
 
