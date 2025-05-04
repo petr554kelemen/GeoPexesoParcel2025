@@ -24,7 +24,7 @@ class ChlapikAnimace {
     vytvorAnimace() {
         this.scene.anims.create({
             key: 'beh',
-            frames: this.scene.anims.generateFrameNames('Chlapik-jde-atlas', {
+            frames: this.scene.anims.generateFrameNames(this.animaceAtlasy['beh'], {
                 prefix: 'Chlapik-jde-',
                 start: 0,
                 end: 29,
@@ -36,13 +36,13 @@ class ChlapikAnimace {
 
         this.scene.anims.create({
             key: 'stoji',
-            frames: [{ key: 'Chlapik-jde-atlas', frame: 'Chlapik-jde-0000' }],
+            frames: [{ key: this.animaceAtlasy['stoji'], frame: 'Chlapik-jde-0000' }],
             frameRate: 20
         });
 
         this.scene.anims.create({
             key: 'tlaceni',
-            frames: this.scene.anims.generateFrameNames('Chlapik-tlaci-atlas', {
+            frames: this.scene.anims.generateFrameNames(this.animaceAtlasy['tlaceni'], {
                 prefix: 'Chlapik-tlaci',
                 start: 0,
                 end: 12,
@@ -54,12 +54,12 @@ class ChlapikAnimace {
     }
 
     play(animationKey, ignoreIfPlaying = false) {
-        //if (this.animaceAtlasy.hasOwnProperty(animationKey)) {
-            //console.log(`Přehrávám animaci: ${animationKey}, aktuální textura: ${this.sprite.texture.key}`);
+        if (this.animaceAtlasy.hasOwnProperty(animationKey)) {
+            console.log(`Přehrávám animaci: ${animationKey}, aktuální textura: ${this.sprite.texture.key}`);
             this.sprite.play(animationKey, ignoreIfPlaying);
-        //} else {
-        //    console.warn(`Animace s klíčem '${animationKey}' není definována.`);
-        //}
+        } else {
+            console.warn(`Animace s klíčem '${animationKey}' není definována.`);
+        }
     }
 
     setFlipX(flipX) {
