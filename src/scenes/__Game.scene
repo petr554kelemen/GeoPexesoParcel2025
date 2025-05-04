@@ -4,7 +4,11 @@
     "settings": {
         "exportClass": true,
         "autoImport": true,
-        "preloadPackFiles": [],
+        "preloadPackFiles": [
+            "3p4pexesoParcel2/public/assets/animace/clovicek-jde-asset-pack.json",
+            "3p4pexesoParcel2/public/assets/animace/clovicek-tlaci-asset-pack.json",
+            "3p4pexesoParcel2/public/assets/preload-asset-pack.json"
+        ],
         "createMethodName": "editorCreate",
         "sceneKey": "Game",
         "borderWidth": 1024,

@@ -14,6 +14,10 @@ export default class Boot extends Scene
 
         this.load.image('background', 'assets/bg.png');
         //this.load.plugin({key:'PathBuilder', url:"<pathtoplugin>/PathBuilder.js",mapping:'PathBuilder'});
+        
+        this.load.image("obrVlevo", "assets/3d-arrow-left.png");
+        this.load.image("obrVpravo", "assets/3d-arrow-right.png");
+
     }
 
     create ()

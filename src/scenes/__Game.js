@@ -17,6 +17,14 @@ export default class __Game extends Phaser.Scene {
 	}
 
 	/** @returns {void} */
+	preload() {
+
+		this.load.pack("clovicek-jde-asset-pack", "assets/animace/clovicek-jde-asset-pack.json");
+		this.load.pack("clovicek-tlaci-asset-pack", "assets/animace/clovicek-tlaci-asset-pack.json");
+		this.load.pack("preload-asset-pack", "assets/preload-asset-pack.json");
+	}
+
+	/** @returns {void} */
 	editorCreate() {
 
 		// background
@@ -31,11 +39,11 @@ export default class __Game extends Phaser.Scene {
 		background.alphaBottomRight = 0.8;
 
 		// pic100
-		const pic100 = this.add.image(355, 500, "Pic10", 0);
+		const pic100 = this.add.image(355, 503, "Pic10", 0);
 		pic100.setOrigin(1, 1);
 
 		// sprite_1
-		const sprite_1 = this.add.sprite(360, 500, "bedna.png");
+		const sprite_1 = this.add.sprite(361, 501, "_MISSING");
 		sprite_1.setOrigin(0, 1);
 
 		// colliderBednaVsChlapik

@@ -7,6 +7,24 @@
                 "key": "backgroundGame"
             },
             {
+                "atlasURL": "assets/animace/Chlapik-jde-atlas.json",
+                "textureURL": "assets/animace/Chlapik-jde-atlas.png",
+                "type": "atlas",
+                "key": "Chlapik-jde-atlas"
+            },
+            {
+                "atlasURL": "assets/animace/Chlapik-tlaci-atlas.json",
+                "textureURL": "assets/animace/Chlapik-tlaci-atlas.png",
+                "type": "atlas",
+                "key": "Chlapik-tlaci-atlas"
+            },
+            {
+                "atlasURL": "assets/animace/Chlapik-v-drepu-atlas.json",
+                "textureURL": "assets/animace/Chlapik-v-drepu-atlas.png",
+                "type": "atlas",
+                "key": "Chlapik-v-drepu-atlas"
+            },
+            {
                 "url": "assets/logo.png",
                 "type": "image",
                 "key": "logo"
