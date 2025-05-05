@@ -17,6 +17,7 @@ export default class Boot extends Scene
         
         this.load.image("obrVlevo", "assets/3d-arrow-left.png");
         this.load.image("obrVpravo", "assets/3d-arrow-right.png");
+        this.load.image('cerveny-obdelnik', 'assets/3d-arrow-left.png'); // Vytvoř si jednoduchý červený čtverec/obdélník
 
     }
 
