@@ -140,6 +140,7 @@ export default class Game extends Phaser.Scene {
 
         this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt); // Používáme odkaz z objektu
 
+        /* 
         setInterval(() => {
             const aktualniAnimace = this.chlapikAnimace.sprite.anims.currentAnim ? this.chlapikAnimace.sprite.anims.currentAnim.key : 'zadna';
             const tlaciSmerLog = this.tlaciSmer ? this.tlaciSmer : 'zadny';
@@ -150,7 +151,8 @@ export default class Game extends Phaser.Scene {
                 'Tlačí směr:', tlaciSmerLog,
                 'Tlačení začalo:', tlaceniZacatekLog
             );
-        }, 300); // Logovat každých 300 milisekund 
+        }, 300); // Logovat každých 300 milisekund  
+        */
     }
 
     zneviditelniObjekty(callback) {
@@ -251,62 +253,102 @@ export default class Game extends Phaser.Scene {
 
     update(time, _delta) {
 
-        let tlaciSmer = null;
-        let pohybDoleva = this.cursors.left.isDown;
-        let pohybDoprava = this.cursors.right.isDown;
-        let pohybNahoru = null;
-        let pohybDolu = null;
+        const rychlostTlaceni = 50; // Pomalejší rychlost tlačení (pohyb s bednou)
 
-        const rychlostTlaceni = 50; // Pomalejší rychlost tlačení
+        // logika pro animace
+        let animujTlacVlevo = this.cursors.left.isDown && !this.cursors.right.isDown && this.chlapik.body.touching.left && this.chlapik.velocity > 0 && this.chlapik.flipX;
+        let animujTlacVpravo = this.cursors.right.isDown && !this.cursors.left.isDown && this.chlapik.body.touching.right && this.chlapik.velocity > 0 && !this.chlapik.flipX;
+        let animujStuj = !this.cursors.left.isDown && !this.cursors.right.isDown && this.chlapik.velocity === 0;
+        let animujBehVlevo = !animujStuj && !animujTlacVlevo && !animujTlacVpravo && this.chlapik.flipX;
+        let animujBehVpravo = !animujStuj && !animujTlacVlevo && !animujTlacVpravo && !this.chlapik.flipX;
 
-        // Nastavíme rychlost na nulu pouze pokud se nic neděje
-        if (!pohybDoleva && !pohybDoprava && !pohybNahoru && !pohybDolu && !this.tlaceniZacatek) {
-            this.chlapik.body.setVelocityX(0);
-            this.chlapik.body.setVelocityY(0);
-        }
+        //const vysledek = Number(a) + Number(b) + Number(c) + Number(d) === 1;
+        let vysledekLogiky = Number(animujTlacVlevo) + Number(animujTlacVpravo) + Number(animujStuj) + Number(animujBehVlevo) + Number(animujBehVpravo) === 1;
 
-        const rychlost = 100;
-        let aktualniAnimaceKlic = this.chlapikAnimace.sprite.anims.currentAnim ? this.chlapikAnimace.sprite.anims.currentAnim.key : '';
-
-        if (this.chlapik.body.touching.left && pohybDoleva) {
-            tlaciSmer = 'left';
-            if (!this.tlaceniZacatek) this.tlaceniZacatek = time;
-            // Spustit animaci tlačení a nastavit rychlosti ZDE
-            if (aktualniAnimaceKlic !== 'tlaceni') {
-                this.chlapikAnimace.play('tlaceni', true);
-            }
-            this.chlapikAnimace.sprite.setFlipX(true);
-            this.chlapik.body.setVelocityX(-rychlostTlaceni);
-            this.bedna.body.setVelocityX(-rychlostTlaceni);
-        } else if (pohybDoleva) { // Běh se spustí JEN když není kolize a je pohyb
-            if (aktualniAnimaceKlic !== 'beh' || this.chlapikAnimace.sprite.flipX !== true) {
-                this.chlapikAnimace.play('beh', true);
-                this.chlapikAnimace.sprite.setFlipX(true);
-            }
-            this.chlapik.body.setVelocityX(-rychlost);
+        //kontrola konzistentnosti podminek
+        if (!vysledekLogiky) {
+            console.log("chybne sestavena podminka");
+            console.log("BehVlevo: ", animujBehVlevo);
+            console.log("BehVpravo: ", animujBehVpravo);
+            console.log('TlacVpravo: ', animujTlacVpravo);
+            console.log('TlacVlevo: ', animujTlacVlevo);
+            console.log('Stuj: ', animujStuj);
+            return;
         } else {
-            this.chlapikAnimace.play("stoji", true);
+            switch (true) {
+                case animujBehVlevo:
+                    this.chlapikAnimace.play('beh', true);
+                    this.chlapikAnimace.sprite.setFlipX(true);
+                    break;
+                case animujBehVpravo:
+                    this.chlapikAnimace.play('beh', true);
+                    this.chlapikAnimace.sprite.setFlipX(false);
+                    break;
+                case animujTlacVlevo:
+                    this.chlapikAnimace.play('tlaceni', true);
+                    this.chlapikAnimace.sprite.setFlipX(true);
+                    break;
+                case animujTlacVpravo:
+                    this.chlapikAnimace.play('tlaceni', true);
+                    this.chlapikAnimace.sprite.setFlipX(false);
+                    break;
+                case animujStuj:
+                    this.chlapikAnimace.play('stoji', true);
+                    break;
+                default:
+                    console.log("Neočekávaný stav, nutna kontrola kodu");
+                    break;
+            }
         }
 
-        if (this.chlapik.body.touching.right && pohybDoprava) {
-            tlaciSmer = 'right';
-            if (!this.tlaceniZacatek) this.tlaceniZacatek = time;
-            // Spustit animaci tlačení a nastavit rychlosti ZDE
-            if (aktualniAnimaceKlic !== 'tlaceni') {
-                this.chlapikAnimace.play('tlaceni', true);
-            }
-            this.chlapikAnimace.sprite.setFlipX(false);
-            this.chlapik.body.setVelocityX(-rychlostTlaceni);
-            this.bedna.body.setVelocityX(-rychlostTlaceni);
-        } else if (pohybDoprava) { // Běh se spustí JEN když není kolize a je pohyb
-            if (aktualniAnimaceKlic !== 'beh' || this.chlapikAnimace.sprite.flipX !== false) {
-                this.chlapikAnimace.play('beh', true);
-                this.chlapikAnimace.sprite.setFlipX(true);
-            }
-            this.chlapik.body.setVelocityX(-rychlost);
-        } else {
-            this.chlapikAnimace.play("stoji", true);
-        }
+        /*         // Nastavíme rychlost na nulu pouze pokud se nic neděje
+                if (!pohybDoleva && !pohybDoprava && !pohybNahoru && !pohybDolu && !this.tlaceniZacatek) {
+                    this.chlapik.body.setVelocityX(0);
+                    this.chlapik.body.setVelocityY(0);
+                }
+        
+                const rychlost = 100;
+                let aktualniAnimaceKlic = this.chlapikAnimace.sprite.anims.currentAnim ? this.chlapikAnimace.sprite.anims.currentAnim.key : '';
+        
+                if (this.chlapik.body.touching.left && pohybDoleva) {
+                    tlaciSmer = 'left';
+                    if (!this.tlaceniZacatek) this.tlaceniZacatek = time;
+                    // Spustit animaci tlačení a nastavit rychlosti ZDE
+                    if (aktualniAnimaceKlic !== 'tlaceni') {
+                        this.chlapikAnimace.play('tlaceni', true);
+                    }
+                    this.chlapikAnimace.sprite.setFlipX(true);
+                    this.chlapik.body.setVelocityX(-rychlostTlaceni);
+                    this.bedna.body.setVelocityX(-rychlostTlaceni);
+                } else if (pohybDoleva) { // Běh se spustí JEN když není kolize a je pohyb
+                    if (aktualniAnimaceKlic !== 'beh' || this.chlapikAnimace.sprite.flipX !== true) {
+                        this.chlapikAnimace.play('beh', true);
+                        this.chlapikAnimace.sprite.setFlipX(true);
+                    }
+                    this.chlapik.body.setVelocityX(-rychlost);
+                } else {
+                    this.chlapikAnimace.play("stoji", true);
+                }
+        
+                if (this.chlapik.body.touching.right && pohybDoprava) {
+                    tlaciSmer = 'right';
+                    if (!this.tlaceniZacatek) this.tlaceniZacatek = time;
+                    // Spustit animaci tlačení a nastavit rychlosti ZDE
+                    if (aktualniAnimaceKlic !== 'tlaceni') {
+                        this.chlapikAnimace.play('tlaceni', true);
+                    }
+                    this.chlapikAnimace.sprite.setFlipX(false);
+                    this.chlapik.body.setVelocityX(-rychlostTlaceni);
+                    this.bedna.body.setVelocityX(-rychlostTlaceni);
+                } else if (pohybDoprava) { // Běh se spustí JEN když není kolize a je pohyb
+                    if (aktualniAnimaceKlic !== 'beh' || this.chlapikAnimace.sprite.flipX !== false) {
+                        this.chlapikAnimace.play('beh', true);
+                        this.chlapikAnimace.sprite.setFlipX(true);
+                    }
+                    this.chlapik.body.setVelocityX(-rychlost);
+                } else {
+                    this.chlapikAnimace.play("stoji", true);
+                } */
 
 
         //Testovací kod
