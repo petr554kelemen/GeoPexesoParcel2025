@@ -37,17 +37,19 @@ export default class Game extends Phaser.Scene {
         this.chlapik = this.chlapikAnimace.sprite; // Získání spritu až po vytvoření ChlapikAnimace
 
         // Přidáme sprite do fyzikálního světa a získáme jeho fyzikální tělo
-        this.physics.add.existing(this.chlapik);
+        this.physics.add.existing(this.chlapik, false);
+        //this.physics.add.sprite(100, objPositionY, this.chlapik);
         this.chlapik.body.setCollideWorldBounds(true); // Fyzikální metoda se volá na .body
         this.chlapik.body.setBounce(0.2);
         this.chlapik.body.setMass(5);
         this.chlapik.body.setDrag(0.1);
         this.chlapik.body.setGravityY(0); // Pokud chceš gravitaci
+        this.chlapik.body.velocity.x = 0;
 
         // Vlastnosti spritu se volají přímo na 'this.chlapik'
         this.chlapik.setScale(.8);
         this.chlapik.body.setSize(100, 100);
-        this.chlapik.body.offsetY = 50;
+        //this.chlapik.body.offsetY = 50;
 
         // background
         const background = this.add.image(500, 390, "backgroundGame");
@@ -254,11 +256,65 @@ export default class Game extends Phaser.Scene {
     update(time, _delta) {
 
         const rychlostTlaceni = 50; // Pomalejší rychlost tlačení (pohyb s bednou)
+        let pozadavekTlacení = (this.chlapikAnimace.sprite.anims.key === "tlaceni");
+
+        /* 
+        kontrola hodnot zda jsou v rozsahu min a max
+        **********************************************************************
+        let jeVRozsahu = (hodnota, minimum, maximum) => {
+            return hodnota >= minimum && hodnota <= maximum;
+        };
+
+        // Použití:
+        let aktualniBod = 5;
+        let minStret = 2;
+        let maxStret = 8;
+
+        if (jeVRozsahu(aktualniBod, minStret, maxStret)) {
+            console.log(`${aktualniBod} je v bodě střetu (v rozsahu).`);
+        } else {
+            console.log(`${aktualniBod} není v bodě střetu (mimo rozsah).`);
+        }
+         **********************************************************************
+         
+        **  Návrh 1: Použití proměnné stavu pro "záměr tlačit":
+
+        *   Když hráč stiskne šipku ve směru bedny a chlapík se poprvé dotkne bedny, nastavíme booleovskou proměnnou (například jeZamyslenoTlacit na true).
+        *   Animaci tlačení budeme přehrávat, pokud je tato proměnná true a zároveň stále držíme šipku ve správném směru.
+        *   Proměnnou jeZamyslenoTlacit nastavíme na false, když hráč přestane držet šipku nebo když se chlapík přestane dotýkat bedny (s určitou malou tolerancí, viz další návrh).
+
+        **  Návrh 2: Přidání malé "hystereze" nebo tolerance pro odpojení:
+
+        *   Můžeme si pamatovat, že kontakt s bednou byl navázán. Pokud se v následujícím velmi krátkém časovém úseku (například několik frameů) kontakt ztratí, ale hráč stále drží šipku ve směru bedny, budeme stále považovat, že tlačí, a přehrávat animaci tlačení.
+        *   To by mohlo pomoct překlenout ty krátké okamžiky, kdy se objekty fyzikálně mírně oddálí.
+        
+        **  Návrh 3: Kontrola překrývání bounding boxů:
+
+        *   Místo body.touching, která je binární (dotýká se / nedotýká se), můžeme zkusit zjistit, zda se bounding boxy chlapíka a bedny stále překrývají. Phaser má pro to utility (například Phaser.Geom.Rectangle.Overlaps). Pokud se překrývají, je velmi pravděpodobné, že jsou stále v kontaktu nebo velmi blízko něj.
+        
+        */
+
+        let jeBodStretu = (hodnotaX) => {
+            const minHodnota = 0; // Nahraď skutečnou minimální hodnotou
+            const maxHodnota = 120; // Nahraď skutečnou maximální hodnotou
+            return (hodnotaX >= minHodnota) && (hodnotaX <= maxHodnota);
+        };
+
+        if (this.cursors.left.isDown) {
+            this.chlapik.flipX = true;
+        } else if (this.cursors.right.isDown) {
+            this.chlapik.flipX = false;
+        }
+
+        if (this.chlapik.body.touching.left || this.chlapik.body.touching.right) {
+            pozadavekTlacení = true;
+        }
 
         // logika pro animace
-        let animujTlacVlevo = this.cursors.left.isDown && !this.cursors.right.isDown && this.chlapik.body.touching.left && this.chlapik.velocity > 0 && this.chlapik.flipX;
-        let animujTlacVpravo = this.cursors.right.isDown && !this.cursors.left.isDown && this.chlapik.body.touching.right && this.chlapik.velocity > 0 && !this.chlapik.flipX;
-        let animujStuj = !this.cursors.left.isDown && !this.cursors.right.isDown && this.chlapik.velocity === 0;
+
+        let animujStuj = !this.cursors.left.isDown && !this.cursors.right.isDown;
+        let animujTlacVlevo = this.cursors.left.isDown && !this.cursors.right.isDown && pozadavekTlacení && this.chlapik.body.velocity.x < 3 && this.chlapik.flipX;
+        let animujTlacVpravo = this.cursors.right.isDown && !this.cursors.left.isDown && pozadavekTlacení && this.chlapik.body.velocity.x > 3 && !this.chlapik.flipX;
         let animujBehVlevo = !animujStuj && !animujTlacVlevo && !animujTlacVpravo && this.chlapik.flipX;
         let animujBehVpravo = !animujStuj && !animujTlacVlevo && !animujTlacVpravo && !this.chlapik.flipX;
 
@@ -279,10 +335,20 @@ export default class Game extends Phaser.Scene {
                 case animujBehVlevo:
                     this.chlapikAnimace.play('beh', true);
                     this.chlapikAnimace.sprite.setFlipX(true);
+                    if (this.chlapik.body.velocity.x >= -3) {
+                        this.chlapik.body.velocity.x = -50;
+                    } else {
+                        this.chlapik.body.velocity.x += 0.02;
+                    }
                     break;
                 case animujBehVpravo:
                     this.chlapikAnimace.play('beh', true);
                     this.chlapikAnimace.sprite.setFlipX(false);
+                    if (this.chlapik.body.velocity.x <= 3) {
+                        this.chlapik.body.velocity.x = 50;
+                    } else {
+                        this.chlapik.body.velocity.x -= 0.02;
+                    }
                     break;
                 case animujTlacVlevo:
                     this.chlapikAnimace.play('tlaceni', true);
@@ -294,6 +360,7 @@ export default class Game extends Phaser.Scene {
                     break;
                 case animujStuj:
                     this.chlapikAnimace.play('stoji', true);
+                    this.chlapik.body.velocity.x = 0;
                     break;
                 default:
                     console.log("Neočekávaný stav, nutna kontrola kodu");
@@ -352,17 +419,23 @@ export default class Game extends Phaser.Scene {
 
 
         //Testovací kod
-        /* 
-        this.pocetUpdate += 1;
 
-        if (this.pocetUpdate <= 60) { // Po 1 sekundě (při 60 FPS)
-            this.chlapikAnimace.play('beh', true);
-        } else if (this.pocetUpdate <= 180) { // Po dalších 2 sekundách
-            this.chlapikAnimace.play('tlaceni', true);
-        } else if (this.pocetUpdate <= 300) { // Po dalších 2 sekundách
-            this.chlapikAnimace.play('beh', true);    
-        } 
-        */
+        this.pocetUpdate = 60 * this.pocetUpdate;
+
+        if (this.pocetUpdate % 30 === 0  ) {
+            console.log('Vypis aktualniho stavu');
+
+            console.log("BehVlevo: ", animujBehVlevo);
+            console.log("BehVpravo: ", animujBehVpravo);
+            console.log('TlacVpravo: ', animujTlacVpravo);
+            console.log('TlacVlevo: ', animujTlacVlevo);
+            console.log('Stuj: ', animujStuj);
+            console.log('Rychlost chlapika: ', this.chlapik.body.velocity.x);
+            console.log('Pozadavek tlaceni:', this.anims.key);
+
+            //return;
+        }
+
         //Testovací kod konec
 
         //const okrajovaVzdalenost = 50;

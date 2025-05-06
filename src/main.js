@@ -43,11 +43,11 @@ const config = {
                 right: true
             },
         //    customUpdate: false,
-        //    fixedStep: true,
-        //    fps: 24,
-        //    timeScale: 1,     // 2.0 = half speed, 0.5 = double speed
+            fixedStep: true,
+            fps: 15,
+        //    timeScale: 2,     // 2.0 = half speed, 0.5 = double speed
         //    customUpdate: false,
-        //    overlapBias: 4,
+            overlapBias: 2,
         //    tileBias: 16,
             forceX: false,
         //    isPaused: false,
