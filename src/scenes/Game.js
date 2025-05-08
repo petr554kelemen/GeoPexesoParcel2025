@@ -21,6 +21,28 @@ export default class Game extends Phaser.Scene {
         this.napoveda = null;
         this.tlaciSmer = null;
         this.pocetUpdate = 0;
+
+        //nastavíme flags pro přepínání animací
+        this.jeAnimaceTlaceniAktivni = false;
+        this.pocetSnímkuOdTlaceni = 0;
+        this.minimalniDobaTlaceni = 10;
+
+        this.jeAnimaceBehuAktivni = false;
+        this.pocetSnímkuOdBehu = 0;
+        this.minimalniDobaBehu = 5;
+        this.posledniAnimace = 'stoji';
+
+        this.dotykaSeBedny = false; // Stav dotyku v aktuálním snímku
+        this.predchoziDotykBedny = false; // Stav dotyku v předchozím snímku
+        this.pocetSnímkuDotyku = 0;
+        this.dobaStabilizaceDotyku = 3; // Počet snímků, po které se musí dotyk držet
+
+        this.prahDotyku = 0; // Předběžná hodnota, budeme ladit
+        this.prahOdstupu = 0; // Předběžná hodnota, budeme ladit
+        this.posledniAnimace = 'stoji';
+
+        this.prvniKolize = 0;
+        this.posledníKolize = 0;
     }
 
     preload() {
@@ -32,6 +54,9 @@ export default class Game extends Phaser.Scene {
     create() {
         this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
         const objPositionY = this.scale.canvas.height / 2 * 1.21;
+
+        this.posledniKolizeCas = 0; // Inicializujeme proměnnou pro uložení času poslední kolize
+        this.dobaProSpusteniTlaceni = 300; // Nastavíme dobu v milisekundách, po kterou musí kolize trvat
 
         this.chlapikAnimace = new ChlapikAnimace(this, 100, objPositionY, 'Chlapik-jde-atlas'); // Upravená inicializace
         this.chlapik = this.chlapikAnimace.sprite; // Získání spritu až po vytvoření ChlapikAnimace
@@ -69,7 +94,12 @@ export default class Game extends Phaser.Scene {
         this.bedna.setMass(7);
         this.bedna.setDrag(this.vychoziTreniBedny);
 
-        this.physics.add.collider(this.chlapik, this.bedna, null, this.muzeKolizovat, this);
+        const polovinaSirkyChlapika = this.chlapik.body.width / 2;
+        const polovinaSirkyBedny = this.bedna.body.width / 2;
+        this.prahDotyku = polovinaSirkyChlapika + polovinaSirkyBedny + 5;
+        this.prahOdstupu = this.prahDotyku + 10;
+
+        this.physics.add.collider(this.chlapik, this.bedna, this.priKolizi, this.muzeTlacit, this);
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -155,6 +185,51 @@ export default class Game extends Phaser.Scene {
             );
         }, 300); // Logovat každých 300 milisekund  
         */
+    }
+
+    muzeTlacit(chlapik, bedna) {
+        const doleva = this.cursors.left.isDown;
+        const doprava = this.cursors.right.isDown;
+        const chlapikX = chlapik.body.center.x;
+        const bednaX = bedna.body.center.x;
+        const chlapikVlevoOdBedny = chlapikX < bednaX;
+        const kontakt = chlapik.body.touching.left || chlapik.body.touching.right;
+
+        /* if (this.prvniKolize === 0 && !(this.posledniKolizeCas > 0)) { //jde o první kolizi ve sledovaném čase
+            this.posledníKolize = 0;
+            this.prvniKolize++;
+            this.posledniKolizeCas  = this.time.now - this.prvniKolize; // Uložíme si čas poslední zaznamenané kolize
+            console.log("Nastaven flag prví kolize")
+        } else if (this.prvniKolize > 0){
+            this.posledniKolizeCas  = this.time.now - this.prvniKolize; // Uložíme si čas poslední zaznamenané kolize
+            console.log('Ulozeny cas op prvni kolize:', this.posledniKolizeCas);
+            
+        }else console.log("Nespecifikovaná podmínka"); */
+
+        // Nastavujeme flag 'tlaci' pouze pokud je kontakt a držíme správnou klávesu
+        this.tlaci = kontakt && ((chlapikVlevoOdBedny && doprava) || (!chlapikVlevoOdBedny && doleva));
+
+        /* if (this.posledniKolize > 300) {
+            this.prvniKolize = 0;
+            //this.posledniKolize = 0;
+            return true
+        }
+        else { return false } */
+        return true;
+    }
+
+    priKolizi(_chlapik, _bedna) {
+        // Zde můžeme mít logiku specifickou pro okamžik kolize,
+        /* if (this.prvniKolize === 0 && !(this.posledniKolizeCas > 0)) { //jde o první kolizi ve sledovaném čase
+            this.posledniKolize = 0;
+            this.prvniKolize++;
+            this.posledniKolizeCas = this.time.now - this.prvniKolize; // Uložíme si čas poslední zaznamenané kolize
+            console.log("Nastaven flag prví kolize")
+        } else if (this.prvniKolize > 0) {
+            this.posledniKolizeCas = this.time.now - this.prvniKolize; // Uložíme si čas poslední zaznamenané kolize
+            console.log('Ulozeny cas op prvni kolize:', this.posledniKolizeCas);
+
+        } else console.log("Nespecifikovaná podmínka"); */
     }
 
     zneviditelniObjekty(callback) {
@@ -256,7 +331,28 @@ export default class Game extends Phaser.Scene {
     update(time, _delta) {
 
         const rychlostTlaceni = 50; // Pomalejší rychlost tlačení (pohyb s bednou)
-        let pozadavekTlacení = (this.chlapikAnimace.sprite.anims.key === "tlaceni");
+        const rychlostPohybu = 100;
+    const doleva = this.cursors.left.isDown;
+    const doprava = this.cursors.right.isDown;
+
+    if (!this.chlapikStouchlBednu) {
+        // Pokud neprobíhá šťouchnutí, přehráváme animace pohybu/stání
+        if (doleva) {
+            this.chlapikAnimace.play('beh', true);
+            this.chlapikAnimace.setFlipX(true);
+            this.chlapik.body.velocity.x = -rychlostPohybu;
+        } else if (doprava) {
+            this.chlapikAnimace.play('beh', true);
+            this.chlapikAnimace.setFlipX(false);
+            this.chlapik.body.velocity.x = rychlostPohybu;
+        } else {
+            this.chlapikAnimace.play('stoji', true);
+            this.chlapik.body.velocity.x = 0;
+        }
+    }
+    // Pokud this.chlapikStouchlBednu je true, čekáme na onComplete callback.
+
+
 
         /* 
         kontrola hodnot zda jsou v rozsahu min a max
@@ -294,7 +390,7 @@ export default class Game extends Phaser.Scene {
         
         */
 
-        let jeBodStretu = (hodnotaX) => {
+        /* let jeBodStretu = (hodnotaX) => {
             const minHodnota = 0; // Nahraď skutečnou minimální hodnotou
             const maxHodnota = 120; // Nahraď skutečnou maximální hodnotou
             return (hodnotaX >= minHodnota) && (hodnotaX <= maxHodnota);
@@ -366,7 +462,7 @@ export default class Game extends Phaser.Scene {
                     console.log("Neočekávaný stav, nutna kontrola kodu");
                     break;
             }
-        }
+        } */
 
         /*         // Nastavíme rychlost na nulu pouze pokud se nic neděje
                 if (!pohybDoleva && !pohybDoprava && !pohybNahoru && !pohybDolu && !this.tlaceniZacatek) {
@@ -420,7 +516,7 @@ export default class Game extends Phaser.Scene {
 
         //Testovací kod
 
-        this.pocetUpdate = 60 * this.pocetUpdate;
+        /* this.pocetUpdate = 60 * this.pocetUpdate;
 
         if (this.pocetUpdate % 30 === 0  ) {
             console.log('Vypis aktualniho stavu');
@@ -436,7 +532,7 @@ export default class Game extends Phaser.Scene {
             //return;
         }
 
-        //Testovací kod konec
+        //Testovací kod konec */
 
         //const okrajovaVzdalenost = 50;
         const bednaUOkrajeVlevo = this.bedna.body.left < 5; // Levý okraj těla bedny je méně než 5 pixelů od levého okraje obrazovky
