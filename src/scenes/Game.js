@@ -21,6 +21,7 @@ export default class Game extends Phaser.Scene {
         this.napoveda = null;
         this.tlaciSmer = null;
         this.pocetUpdate = 0;
+        this.vertikalniPosun = 0;
     }
 
     preload() {
@@ -45,9 +46,10 @@ export default class Game extends Phaser.Scene {
         this.chlapik.body.setGravityY(0); // Pokud chceš gravitaci
 
         // Vlastnosti spritu se volají přímo na 'this.chlapik'
-        this.chlapik.setScale(.8);
-        this.chlapik.body.setSize(100, 100);
-        this.chlapik.body.offsetY = 50;
+        this.chlapik.setScale(1);
+        this.chlapik.body.setSize(5, 64);
+        this.chlapik.body.offset.x = 48;
+        this.chlapik.body.offset.y = 0;
 
         // background
         const background = this.add.image(500, 390, "backgroundGame");
@@ -61,11 +63,12 @@ export default class Game extends Phaser.Scene {
         background.alphaBottomRight = 0.8;
 
         this.bedna = this.physics.add.sprite(this.chlapik.x + 60, objPositionY, 'obrVpravo');
-        this.bedna.setScale(0.5);
+        this.bedna.setScale(0.8);
         this.bedna.setCollideWorldBounds(true);
         this.bedna.setBounce(0.15);
         this.bedna.setMass(7);
         this.bedna.setDrag(this.vychoziTreniBedny);
+        this.bedna.body.setSize(5,32);
 
         this.physics.add.collider(this.chlapik, this.bedna, null, this.muzeKolizovat, this);
 
@@ -140,7 +143,7 @@ export default class Game extends Phaser.Scene {
 
         this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt); // Používáme odkaz z objektu
 
-        setInterval(() => {
+/*         setInterval(() => {
             const aktualniAnimace = this.chlapikAnimace.sprite.anims.currentAnim ? this.chlapikAnimace.sprite.anims.currentAnim.key : 'zadna';
             const tlaciSmerLog = this.tlaciSmer ? this.tlaciSmer : 'zadny';
             const tlaceniZacatekLog = this.tlaceniZacatek ? 'ano' : 'ne';
@@ -150,7 +153,7 @@ export default class Game extends Phaser.Scene {
                 'Tlačí směr:', tlaciSmerLog,
                 'Tlačení začalo:', tlaceniZacatekLog
             );
-        }, 300); // Logovat každých 300 milisekund 
+        }, 300); // Logovat každých 300 milisekund  */
     }
 
     zneviditelniObjekty(callback) {
@@ -164,8 +167,11 @@ export default class Game extends Phaser.Scene {
     }
 
     teleportujObjekty() {
-        const vertikalniPosun = this.chlapik.body.center.y;
+        const vertikalniPosun = this.bedna.body.center.y;
         const konstantniVzdalenost = 50; // Nastav si požadovanou konstantní vzdálenost mezi nimi
+
+        console.log('Vertikalni posun: ', vertikalniPosun);
+        
 
         if (this.bedna.body.right > this.scale.width - 5) { // Bedna u pravého okraje
             // Bedna blíže ke středu levé třetiny
@@ -215,7 +221,7 @@ export default class Game extends Phaser.Scene {
             if (jeBednaPomalna && !this.hraDokoncena) {
                 console.log('Hra dokončena (střed bedny v zóně a bedna je pomalá)!');
                 this.hraDokoncena = true;
-                this.bedna.setVelocity(0);
+                this.bedna.body.velocity.x = 0;
                 if (this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
                     this.cilovaZonaData.souradniceText.preFX.clear();
                     this.cilovaZonaData.blurFx = null;
@@ -251,84 +257,58 @@ export default class Game extends Phaser.Scene {
 
     update(time, _delta) {
 
-        let tlaciSmer = null;
-        let pohybDoleva = this.cursors.left.isDown;
-        let pohybDoprava = this.cursors.right.isDown;
-        let pohybNahoru = null;
-        let pohybDolu = null;
-
-        const rychlostTlaceni = 50; // Pomalejší rychlost tlačení
-
-        // Nastavíme rychlost na nulu pouze pokud se nic neděje
-        if (!pohybDoleva && !pohybDoprava && !pohybNahoru && !pohybDolu && !this.tlaceniZacatek) {
-            this.chlapik.body.setVelocityX(0);
-            this.chlapik.body.setVelocityY(0);
-        }
-
-        const rychlost = 100;
+        let tlaciSmer = ['doprava','doleva'];
+        let doleva = this.cursors.left.isDown;
+        let doprava = this.cursors.right.isDown;
+    
+        const rychlostTlaceni = 50; // Pomalejší rychlost tlačení pro tlačení bedny
+        const rychlostPohybu = 75; // Standardní rychlost pohybu bez bedny
+    
         let aktualniAnimaceKlic = this.chlapikAnimace.sprite.anims.currentAnim ? this.chlapikAnimace.sprite.anims.currentAnim.key : '';
-
-        if (this.chlapik.body.touching.left && pohybDoleva) {
-            tlaciSmer = 'left';
+    
+        if (this.chlapik.body.touching.left && doleva) {
+            //tlaciSmer = 'left';
             if (!this.tlaceniZacatek) this.tlaceniZacatek = time;
-            // Spustit animaci tlačení a nastavit rychlosti ZDE
             if (aktualniAnimaceKlic !== 'tlaceni') {
                 this.chlapikAnimace.play('tlaceni', true);
             }
             this.chlapikAnimace.sprite.setFlipX(true);
-            this.chlapik.body.setVelocityX(-rychlostTlaceni);
-            this.bedna.body.setVelocityX(-rychlostTlaceni);
-        } else if (pohybDoleva) { // Běh se spustí JEN když není kolize a je pohyb
+            this.chlapik.body.velocity.x = (-rychlostTlaceni);
+            this.bedna.body.velocity.x = (-rychlostTlaceni);
+        } else if (doleva) { // Jdi doleva
             if (aktualniAnimaceKlic !== 'beh' || this.chlapikAnimace.sprite.flipX !== true) {
                 this.chlapikAnimace.play('beh', true);
                 this.chlapikAnimace.sprite.setFlipX(true);
             }
-            this.chlapik.body.setVelocityX(-rychlost);
-        } else {
-            this.chlapikAnimace.play("stoji", true);
+            this.chlapik.body.velocity.x = (-rychlostPohybu);
         }
-
-        if (this.chlapik.body.touching.right && pohybDoprava) {
-            tlaciSmer = 'right';
+    
+        if (this.chlapik.body.touching.right && doprava) {
+            //tlaciSmer = 'right';
             if (!this.tlaceniZacatek) this.tlaceniZacatek = time;
-            // Spustit animaci tlačení a nastavit rychlosti ZDE
             if (aktualniAnimaceKlic !== 'tlaceni') {
                 this.chlapikAnimace.play('tlaceni', true);
             }
             this.chlapikAnimace.sprite.setFlipX(false);
-            this.chlapik.body.setVelocityX(-rychlostTlaceni);
-            this.bedna.body.setVelocityX(-rychlostTlaceni);
-        } else if (pohybDoprava) { // Běh se spustí JEN když není kolize a je pohyb
+            this.chlapik.body.velocity.x = (rychlostTlaceni); // Kladná rychlost doprava
+            this.bedna.body.velocity.x = (rychlostTlaceni);   // Kladná rychlost doprava
+        } else if (doprava) { // Jdi doprava
             if (aktualniAnimaceKlic !== 'beh' || this.chlapikAnimace.sprite.flipX !== false) {
                 this.chlapikAnimace.play('beh', true);
-                this.chlapikAnimace.sprite.setFlipX(true);
+                this.chlapikAnimace.sprite.setFlipX(false);
             }
-            this.chlapik.body.setVelocityX(-rychlost);
+            this.chlapik.body.velocity.x = (rychlostPohybu);      // Kladná rychlost doprava
         } else {
             this.chlapikAnimace.play("stoji", true);
+            this.chlapik.body.velocity.x = 0;
         }
-
-
-        //Testovací kod
-        /* 
-        this.pocetUpdate += 1;
-
-        if (this.pocetUpdate <= 60) { // Po 1 sekundě (při 60 FPS)
-            this.chlapikAnimace.play('beh', true);
-        } else if (this.pocetUpdate <= 180) { // Po dalších 2 sekundách
-            this.chlapikAnimace.play('tlaceni', true);
-        } else if (this.pocetUpdate <= 300) { // Po dalších 2 sekundách
-            this.chlapikAnimace.play('beh', true);    
-        } 
-        */
-        //Testovací kod konec
-
-        //const okrajovaVzdalenost = 50;
-        const bednaUOkrajeVlevo = this.bedna.body.left < 5; // Levý okraj těla bedny je méně než 5 pixelů od levého okraje obrazovky
-        const bednaUOkrajeVpravo = this.bedna.body.right > this.scale.width - 5; // Pravý okraj těla bedny je více než 5 pixelů od pravého okraje obrazovky
-        const bednaUOkrajeNahore = this.bedna.body.top < 5; // Horní okraj těla bedny je méně než 5 pixelů od horního okraje obrazovky
-        const bednaUOkrajeDole = this.bedna.body.bottom > this.scale.height - 5; // Dolní okraj těla bedny je více než 5 pixelů od dolního okraje obrazovky
-
+    
+        // Kód pro teleportaci a vyhodnocení cílové zóny
+        const bednaUOkrajeVlevo = this.bedna.body.left < 5;
+        const bednaUOkrajeVpravo = this.bedna.body.right > this.scale.width - 5;
+        const bednaUOkrajeNahore = this.bedna.body.top < 5;
+        const bednaUOkrajeDole = this.bedna.body.bottom > this.scale.height - 5;
+    
         if ((bednaUOkrajeVlevo) || (bednaUOkrajeVpravo) || (bednaUOkrajeNahore) || (bednaUOkrajeDole)) {
             if (!this.teleportaceBezi) {
                 this.teleportaceBezi = true;
@@ -336,25 +316,23 @@ export default class Game extends Phaser.Scene {
                     this.teleportujObjekty();
                     console.log('nové x body.center chlapíka: ', this.chlapik.body.center.x);
                     console.log('nové x body.center bedny: ', this.bedna.body.center.x);
-
                     this.zviditelniObjekty(() => {
                         this.teleportaceBezi = false;
                     });
                 });
             }
         } else {
-            // Pokud bedna není u okraje, resetujeme příznaky teleportace
             this.teleportaceBezi = false;
-            this.bedna.alpha = 1; // Zajistíme, že bedna je viditelná
+            this.bedna.alpha = 1;
             this.chlapik.alpha = 1;
         }
-
+    
         const bednaBounds = this.bedna.getBounds();
         const zelenaZonaBounds = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
-        const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds(); // Používáme objekt pro červenou zónu
-
-        this.vyhodnotCilovouZonu(); // Voláme naši novou funkci pro vyhodnocení zón
-
+        const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
+    
+        this.vyhodnotCilovouZonu();
+    
         this.updateStopky(time);
     }
 
@@ -373,18 +351,13 @@ export default class Game extends Phaser.Scene {
                 this.stopkyText.setText(`${minutes}:${seconds}:${milliseconds}`);
             }
         } else {
-            console.log('casovac a destroy');
-
+            console.log('Prázdna sekce pro stopky nebeží');
         }
     }
 
     muzeKolizovat(_chlapik, _bedna) {
         return true; // Pro teleportaci necháme kolize vždy povolené
         //console.log();
-
-    }
-
-    setAnimeChlapik() {
 
     }
 }

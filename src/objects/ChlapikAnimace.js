@@ -49,7 +49,7 @@ class ChlapikAnimace {
      */
     play(animeKey, ignoreIfPlaying = true) {
         this.sprite.play(animeKey, ignoreIfPlaying);
-        console.log(this.scene.anims.get(animeKey));
+        //console.log(this.scene.anims.get(animeKey));
     }
 
     /**
