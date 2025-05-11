@@ -26,8 +26,8 @@ export default class Game extends Phaser.Scene {
 
     preload() {
         // přesunuto do boot.js
-        // this.load.image("obrVlevo", "assets/3d-arrow-left.png");
-        // this.load.image("obrVpravo", "assets/3d-arrow-right.png");
+        //this.load.image("pictureChlapik", "assets/3d-arrow-left.png");
+        //this.load.image("pictureBedna", "assets/3d-arrow-right.png");
     }
 
     create() {
@@ -37,11 +37,13 @@ export default class Game extends Phaser.Scene {
         //ladící proměnná
         this.zacniAnimaciTlaceni = false; // Inicializace příznaku
 
-        this.chlapikAnimace = new ChlapikAnimace(this, 100, objPositionY, 'Chlapik-jde-atlas'); // Upravená inicializace
-        this.chlapik = this.chlapikAnimace.sprite; // Získání spritu až po vytvoření ChlapikAnimace
+        //this.chlapikAnimace = new ChlapikAnimace(this, 50, objPositionY, 'pictureChlapik'); // Upravená inicializace
+        //this.chlapik = this.chlapikAnimace.sprite; // Získání spritu až po vytvoření ChlapikAnimace
+        //this.chlapik = this.add.sprite(0,0,"pictureChlapik");
 
         // Přidáme sprite do fyzikálního světa a získáme jeho fyzikální tělo
-        this.physics.add.existing(this.chlapik);
+        //this.physics.add.existing(this.chlapik);
+        this.chlapik = this.physics.add.sprite(50, objPositionY, "pictureChlapik");
         this.chlapik.body.setCollideWorldBounds(true); // Fyzikální metoda se volá na .body
         this.chlapik.body.setBounce(0.2);
         this.chlapik.body.setMass(5);
@@ -56,7 +58,7 @@ export default class Game extends Phaser.Scene {
 
         // background
         const background = this.add.image(500, 390, "backgroundGame");
-        background.blendMode = Phaser.BlendModes.SOURCE_OUT;
+        //background.blendMode = Phaser.BlendModes.SOURCE_OUT;
         background.scaleX = 0.8784867183713885;
         background.scaleY = 0.9624751673844308;
         background.alpha = 0.98;
@@ -65,17 +67,17 @@ export default class Game extends Phaser.Scene {
         background.alphaBottomLeft = 0.8;
         background.alphaBottomRight = 0.8;
 
-        this.bedna = this.physics.add.sprite(this.chlapik.x + 60, objPositionY, 'obrVpravo');
+        this.bedna = this.physics.add.sprite(this.chlapik.x + 60, objPositionY, 'pictureBedna');
         this.bedna.setScale(0.8);
         this.bedna.setCollideWorldBounds(true);
         this.bedna.setBounce(0.15);
         this.bedna.setMass(7);
         this.bedna.setDrag(this.vychoziTreniBedny);
-        this.bedna.body.setSize(2, 32);
+        this.bedna.body.setSize(32, 32);
 
         this.physics.add.collider(this.chlapik, this.bedna, null, this.muzeKolizovat, this);
 
-        this.cursors = this.input.keyboard.createCursorKeys();
+        this.cursors = this.input.keyboard.createCursorKeys(); // reagovat na kurzory
 
         // cilova zona DATA
         const xStredZony = this.scale.width / 2;
@@ -264,9 +266,9 @@ export default class Game extends Phaser.Scene {
         const doprava = this.cursors.right.isDown;
         const rychlostPohybu = 150; // Nebo tvoje definovaná rychlost
 
-        if (window.DEBUG_MODE){
-        console.log(this.chlapik);
-        console.log(this.chlapik.body);
+        if (window.DEBUG_MODE) {
+            console.log(this.chlapik);
+            console.log(this.chlapik.body);
         }
 
         if (doleva) {
@@ -284,13 +286,13 @@ export default class Game extends Phaser.Scene {
         const tlaciPodminka = (doleva && prekryvX !== 0 && chlapikVlevo) ||
             (doprava && prekryvX !== 0 && chlapikVpravo);
 
-        if (tlaciPodminka) {
-            this.zacniAnimaciTlaceni = true;
-        } else {
-            this.zacniAnimaciTlaceni = false;
-        }
+        /*         if (tlaciPodminka) {
+                    this.zacniAnimaciTlaceni = true;
+                } else {
+                    this.zacniAnimaciTlaceni = false;
+                } */
 
-        if (this.zacniAnimaciTlaceni) {
+        /* if (this.zacniAnimaciTlaceni) {
             this.chlapikAnimace.play('tlaci', true);
         } else {
             if (this.chlapikAnimace.sprite && this.chlapikAnimace.sprite.anims && this.chlapikAnimace.sprite.anims.currentAnim && this.chlapikAnimace.sprite.anims.currentAnim.key !== 'stoji') {
@@ -300,14 +302,14 @@ export default class Game extends Phaser.Scene {
             } else if (!doleva && !doprava && this.chlapikAnimace.sprite && this.chlapikAnimace.sprite.anims && this.chlapikAnimace.sprite.anims.currentAnim.key !== 'stoji') {
                 this.chlapikAnimace.play('stoji', true); // Zajištění animace stání, když se netlačí a nepohybuje
             }
-        }
+        } */
 
         console.log('Doleva stisknuto:', doleva);
         console.log('Doprava stisknuto:', doprava);
         console.log('PrekryvX:', prekryvX);
         console.log('Chlapik vlevo:', chlapikVlevo);
         console.log('Chlapik vpravo:', chlapikVpravo);
-        console.log('zacniAnimaciTlaceni:', this.zacniAnimaciTlaceni);
+//      console.log('zacniAnimaciTlaceni:', this.zacniAnimaciTlaceni);
 
         // Kód pro teleportaci a vyhodnocení cílové zóny
         const bednaUOkrajeVlevo = this.bedna.body.left < 5;

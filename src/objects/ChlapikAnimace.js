@@ -7,7 +7,7 @@ class ChlapikAnimace {
      * @param {Phaser.Scene} scene - Instance herní scény Phaseru.
      * @param {number} x - Počáteční X souřadnice spritu.
      * @param {number} y - Počáteční Y souřadnice spritu.
-     * @param {string} defaultTextureKey - Klíč animace pro zobrazení.
+     * @param {string} defaultTextureKey - Klíč pro zobrazení animace.
      */
 
     constructor(scene, x, y, defaultTextureKey) { // Změnili jsme parametry
@@ -18,7 +18,7 @@ class ChlapikAnimace {
 
     vytvorAnimace() {
         this.scene.anims.create({
-            key: 'beh',
+            key: 'bezi',
             //frames: this.scene.anims.generateFrameNames('Chlapik-jde-atlas', { /* ... */ }),
             frames: 'Chlapik-jde-atlas',
             frameRate: 15,
@@ -34,7 +34,7 @@ class ChlapikAnimace {
         });
 
         this.scene.anims.create({
-            key: 'tlaceni',
+            key: 'tlaci',
             //frames: this.scene.anims.generateFrameNames('Chlapik-tlaci-atlas', { /* ... */ }),
             frames: 'Chlapik-tlaci-atlas',
             frameRate: 15,

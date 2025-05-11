@@ -13,12 +13,9 @@ export default class Boot extends Scene
         //  The smaller the file size of the assets, the better, as the Boot Scene itself has no preloader.
 
         this.load.image('background', 'assets/bg.png');
-        //this.load.plugin({key:'PathBuilder', url:"<pathtoplugin>/PathBuilder.js",mapping:'PathBuilder'});
         
-        this.load.image("obrVlevo", "assets/3d-arrow-left.png");
-        this.load.image("obrVpravo", "assets/3d-arrow-right.png");
-        this.load.image('cerveny-obdelnik', 'assets/3d-arrow-left.png'); // Vytvoř si jednoduchý červený čtverec/obdélník
-
+        this.load.image("pictureChlapik", "assets/3d-arrow-left.png"); //statický obrázek pro nastavení hry
+        this.load.image("pictureBedna", "assets/3d-arrow-right.png"); //statický obrázek pro nastavení hry
     }
 
     create ()
