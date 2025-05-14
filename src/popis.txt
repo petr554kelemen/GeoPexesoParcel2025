@@ -72,3 +72,132 @@ Zjednodušení logiky animací: Zvaž přehlednější způsob určení, kdy se 
 Komentáře: Přidání komentářů k složitějším částem kódu (například k podmínce pro animaci tlačení) by zlepšilo jeho srozumitelnost.
 Konstanty: Hodnoty jako rychlostPohybu, maximalniRychlostProDokonceni, konstantní vzdálenost při teleportaci atd. by mohly být definovány jako konstanty na začátku třídy pro snadnější úpravu.
 Ladící režim: Můžeš zvážit přidání globální proměnné pro ladící režim, která by přepínala zobrazení ladících informací (např. hranice zón, rychlosti objektů) a zapínala/vypínala detailní console.log výpisy.
+
+**********************************************************************************************************************************
+** kod pro ukladani splnene hry **V metodě vyhodnotCilovouZonu(), kde detekujeme dokončení hry, přidáme uložení do localStorage: *
+**********************************************************************************************************************************
+
+JavaScript
+
+    vyhodnotCilovouZonu() {
+        // ... tvůj stávající kód pro vyhodnocení cílové zóny ...
+
+        if (jeBednaStredVZeleneZone && jeBednaPomala && !this.hraDokoncena) {
+            console.log('Hra dokončena (střed bedny v zóně a bedna je pomalá)!');
+            this.hraDokoncena = true;
+            this.bedna.body.velocity.x = 0;
+            // ... tvůj stávající kód pro dokončení hry ...
+
+            // Uložíme stav dokončení do localStorage
+            localStorage.setItem('hraDokoncena', 'true');
+
+            // Zobrazíme souřadnice (můžeš to přesunout do samostatné funkce)
+            this.cilovaZonaData.souradniceText.setVisible(true).setStyle({ fill: '#00ff00', fontStyle: '', shadowBlur: 0 }).setText("Souřadnice cíle: N50 49 111 E 017 29 999");
+
+            // Deaktivujeme ovládání (příklad - můžeš upravit podle potřeby)
+            this.cursors.left.isDown = false;
+            this.cursors.right.isDown = false;
+            this.chlapik.body.setVelocity(0);
+            this.bedna.body.setVelocity(0);
+            this.buttonLeft.setVisible(false).disableInteractive();
+            this.buttonRight.setVisible(false).disableInteractive();
+            this.stopkyBezi = false; // Zastavíme stopky
+        }
+
+        // ... zbytek kódu pro vyhodnocení zóny ...
+    }
+V metodě create() přidáme kontrolu localStorage:
+
+JavaScript
+
+    create() {
+        this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
+        const objPositionY = this.scale.canvas.height / 2 * 1.21;
+
+        // Zkontrolujeme, zda je hra již dokončena
+        const hraDokoncenaUlozena = localStorage.getItem('hraDokoncena');
+
+        if (hraDokoncenaUlozena === 'true') {
+            console.log('Hra již byla dokončena, zobrazuji souřadnice.');
+            this.hraDokoncena = true;
+            // Nastavíme pozici bedny a chlapíka (pokud je třeba)
+            this.teleportujObjekty(); // Nebo nastavíme finální pozice
+            this.cilovaZonaData.souradniceText.setVisible(true).setStyle({ fill: '#00ff00', fontStyle: '', shadowBlur: 0 }).setText("Souřadnice cíle: N50 49 111 E 017 29 999");
+            this.buttonLeft.setVisible(false).disableInteractive();
+            this.buttonRight.setVisible(false).disableInteractive();
+            this.chlapik = this.physics.add.sprite(this.chlapik.x, objPositionY, 'chlapik_animace', 'Clovicek-stoji-jde-tlaci-10000').setOrigin(0.5, 1); // Vytvoříme chlapíka, ale už ho nebudeme ovládat
+            this.chlapik.body.setImmovable(true); // Aby se nehýbal
+            this.bedna = this.physics.add.sprite(this.bedna.x, objPositionY, 'pictureBedna').setScale(0.8); // Vytvoříme bednu, ale už s ní nebudeme hýbat
+            this.bedna.body.setImmovable(true);
+            this.stopkyBezi = false; // Zastavíme stopky, pokud by běžely
+        } else {
+            // Pokud hra ještě nebyla dokončena, spustíme ji normálně
+            this.chlapik = this.physics.add.sprite(50, objPositionY, 'chlapik_animace', 'Clovicek-stoji-jde-tlaci-10000').setOrigin(0.5, 1);
+            this.chlapik.body.setCollideWorldBounds(true);
+            this.chlapik.body.setBounce(0.2);
+            this.chlapik.body.setMass(8);
+            this.chlapik.body.setDrag(0.1, 0);
+            this.chlapik.body.setGravityY(0);
+            this.chlapik.body.setSize(55, 100);
+            this.chlapik.body.offset.x = 0;
+            this.chlapik.body.offset.y = -32;
+
+            this.bedna = this.physics.add.sprite(this.chlapik.x + 60, objPositionY, 'pictureBedna').setScale(0.8);
+            this.bedna.setCollideWorldBounds(true);
+            this.bedna.setBounce(0.15);
+            this.bedna.setMass(5);
+            this.bedna.setDrag(this.vychoziTreniBedny);
+            this.bedna.body.setSize(32, 32);
+
+            this.physics.add.collider(this.chlapik, this.bedna, null, this.muzeKolizovat, this);
+            this.cursors = this.input.keyboard.createCursorKeys();
+            // ... inicializace cílové zóny, tlačítek atd. ...
+            this.teleportujObjekty();
+            this.startTime = 0;
+            this.runningTime = 0;
+            this.stopkyBezi = false;
+            this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt);
+        }
+
+        // ... zbytek metody create ...
+    }
+Důležité poznámky:
+
+Pro testování budeš pravděpodobně chtít mít možnost resetovat stav dokončení. Můžeš si například přidat tlačítko nebo nějakou klávesovou zkratku, která zavolá localStorage.removeItem('hraDokoncena'); a znovu načte stránku (window.location.reload();).
+
+******************************
+** Konec
+******************************
+
+********************************************
+** Pocitadlo neuspesnych pokusu
+********************************************
+
+Implementace (základní):
+
+V create():
+
+JavaScript
+
+        this.pocetChybnychPokusu = 0;
+        this.chybnePokusyText = this.add.text(this.cameras.main.width - 20, 50, "Chyby: 0", {
+            font: '24px Arial',
+            fill: '#ff0',
+            align: 'right'
+        }).setOrigin(1, 0).setScrollFactor(0);
+Ve vyhodnotCilovouZonu() (příklad pro červenou zónu jako chybu):
+
+JavaScript
+
+        } else if (jeBednaStredVCerveneZone && !this.cilovaZonaData.prekryvaCervenou) {
+            console.log("Střed bedny vstoupil do červené zóny!");
+            this.pocetChybnychPokusu++;
+            this.chybnePokusyText.setText(`Chyby: ${this.pocetChybnychPokusu}`);
+            // ... tvůj stávající kód pro červenou zónu ...
+        }
+V update():
+
+JavaScript
+
+        this.chybnePokusyText.setText(`Chyby: ${this.pocetChybnychPokusu}`);
+        this.updateStopky(time);
