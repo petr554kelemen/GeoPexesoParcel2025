@@ -1,0 +1,86 @@
+{
+    "frames": [
+        {
+            "filename": "tlaci-00",
+            "frame": {
+                "w": 61,
+                "h": 120,
+                "x": 10,
+                "y": 10
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "tlaci-01",
+            "frame": {
+                "w": 61,
+                "h": 120,
+                "x": 81,
+                "y": 10
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "tlaci-02",
+            "frame": {
+                "w": 61,
+                "h": 120,
+                "x": 10,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "tlaci-03",
+            "frame": {
+                "w": 61,
+                "h": 118,
+                "x": 81,
+                "y": 140
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "tlaci-05",
+            "frame": {
+                "w": 62,
+                "h": 118,
+                "x": 152,
+                "y": 10
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "tlaci-04",
+            "frame": {
+                "w": 85,
+                "h": 117,
+                "x": 224,
+                "y": 10
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        }
+    ],
+    "meta": {
+        "description": "Atlas generado con Atlas Packer Gamma V2",
+        "web": "https://gammafp.github.io/atlas-packer-phaser/"
+    }
+}

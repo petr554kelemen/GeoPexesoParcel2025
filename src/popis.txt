@@ -65,6 +65,7 @@ updateStopky():
 Podmínka !this.hraDokoncena zajišťuje, že stopky běží pouze pokud hra neskončila.
 Logika pro formátování času do MM:SS:MS je správná.
 muzeKolizovat(): Momentálně vrací vždy true, což znamená, že kolize mezi postavou a bednou jsou vždy povoleny. To je v pořádku pro teleportaci, ale pokud budeš chtít v budoucnu nějaké podmínky pro kolize, budeš je implementovat zde.
+
 Doporučení a možné vylepšení:
 
 Zjednodušení logiky animací: Zvaž přehlednější způsob určení, kdy se má přehrát animace tlačení. Možná by stačilo kontrolovat, zda se postava pohybuje ve směru bedny a zda se překrývají.

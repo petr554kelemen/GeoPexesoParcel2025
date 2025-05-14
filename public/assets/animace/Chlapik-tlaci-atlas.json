@@ -1,6 +1,6 @@
 ﻿{"frames": {
 
-"Chlapik-tlaci0000":
+"Chlapik-tlaci-spritesheet0000":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -8,7 +8,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0001":
+"Chlapik-tlaci-spritesheet0001":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -16,7 +16,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0002":
+"Chlapik-tlaci-spritesheet0002":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -24,7 +24,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0003":
+"Chlapik-tlaci-spritesheet0003":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -32,7 +32,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0004":
+"Chlapik-tlaci-spritesheet0004":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -40,7 +40,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0005":
+"Chlapik-tlaci-spritesheet0005":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -48,7 +48,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0006":
+"Chlapik-tlaci-spritesheet0006":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -56,7 +56,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0007":
+"Chlapik-tlaci-spritesheet0007":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -64,7 +64,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0008":
+"Chlapik-tlaci-spritesheet0008":
 {
 	"frame": {"x":0,"y":0,"w":146,"h":287},
 	"rotated": false,
@@ -72,7 +72,7 @@
 	"spriteSourceSize": {"x":4,"y":0,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0009":
+"Chlapik-tlaci-spritesheet0009":
 {
 	"frame": {"x":156,"y":0,"w":205,"h":282},
 	"rotated": false,
@@ -80,7 +80,7 @@
 	"spriteSourceSize": {"x":0,"y":7,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0010":
+"Chlapik-tlaci-spritesheet0010":
 {
 	"frame": {"x":156,"y":0,"w":205,"h":282},
 	"rotated": false,
@@ -88,7 +88,7 @@
 	"spriteSourceSize": {"x":0,"y":7,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0011":
+"Chlapik-tlaci-spritesheet0011":
 {
 	"frame": {"x":156,"y":0,"w":205,"h":282},
 	"rotated": false,
@@ -96,7 +96,7 @@
 	"spriteSourceSize": {"x":0,"y":7,"w":205,"h":289},
 	"sourceSize": {"w":205,"h":289}
 },
-"Chlapik-tlaci0012":
+"Chlapik-tlaci-spritesheet0012":
 {
 	"frame": {"x":156,"y":0,"w":205,"h":282},
 	"rotated": false,
@@ -107,7 +107,7 @@
 "meta": {
 	"app": "Adobe Animate",
 	"version": "24.0.9.74",
-	"image": "Chlapik-tlaci.png",
+	"image": "Chlapik-tlaci-spritesheet.png",
 	"format": "RGBA8888",
 	"size": {"w":512,"h":512},
 	"scale": "1"

@@ -69,9 +69,6 @@ export default class Preloader extends Phaser.Scene {
     {
         // Use the 'pack' file to load in any assets you need for this scene
         this.load.pack('preload', 'assets/preload-asset-pack.json');
-        //this.load.pack('my-pack', 'assets/asset-pack-background.json');
-		
-		//this.load.plugin({key:'PathBuilder', url:"phaser3-plugin-pathbuilder/dist/PathBuilder.js", mapping:'PathBuilder'});
     }
 
     create ()

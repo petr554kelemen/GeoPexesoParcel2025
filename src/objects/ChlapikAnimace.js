@@ -12,52 +12,50 @@ class ChlapikAnimace {
 
     constructor(scene, x, y, defaultTextureKey) { // Změnili jsme parametry
         this.scene = scene;
-        this.sprite = this.scene.add.sprite(x, y, defaultTextureKey); // Použijeme defaultTextureKey
-        this.vytvorAnimace();
+        this.sprite = scene.physics.add.sprite(x, y, defaultTextureKey);
+
+        this.createAnimations();
     }
 
-    vytvorAnimace() {
+    createAnimations() {
         this.scene.anims.create({
-            key: 'bezi',
-            //frames: this.scene.anims.generateFrameNames('Chlapik-jde-atlas', { /* ... */ }),
-            frames: 'Chlapik-jde-atlas',
-            frameRate: 15,
+            key: 'stoji',
+            frames: [{ key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10000' }],
+            frameRate: 20,
             repeat: -1
         });
 
         this.scene.anims.create({
-            key: 'stoji',
-            //frames: [{ key: 'Chlapik-jde-atlas', frame: 'Chlapik-jde-0000' }],
-            frames: [{ key: 'cerveny-obdelnik' }],
-            //'cerveny-obdelnik'
-            frameRate: 20
+            key: 'jde',
+            frames: [
+                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10001' },
+                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10002' },
+                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10003' },
+                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10004' },
+                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10005' },
+            ],
+            frameRate: 7,
+            repeat: -1
         });
 
         this.scene.anims.create({
             key: 'tlaci',
-            //frames: this.scene.anims.generateFrameNames('Chlapik-tlaci-atlas', { /* ... */ }),
-            frames: 'Chlapik-tlaci-atlas',
-            frameRate: 15,
-            repeat: -1
+            frames: [
+                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10006' },
+                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10007' },
+                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10008' }
+            ],
+            frameRate: 3,
+            repeat: -1 // Nebo 0, pokud to má být statický obrázek
         });
     }
 
-    /**
-     * 
-     * @param {string} animeKey - key animace k přehrávání
-     * @param {boolean} ignoreIfPlaying - pokud true, přehraje vždy od začátku
-     */
-    play(animeKey, ignoreIfPlaying = true) {
-        this.sprite.play(animeKey, ignoreIfPlaying);
-        //console.log(this.scene.anims.get(animeKey));
+    play(key, ignoreIfPlaying) {
+        this.sprite.play(key, ignoreIfPlaying);
     }
 
-    /**
-     * 
-     * @param {boolean} flipX - false je normal, true je otočený
-     */
-    setFlipX(flipX) {
-        this.sprite.setFlipX(flipX);
+    setFlipX(value) {
+        this.sprite.setFlipX(value);
     }
 }
 

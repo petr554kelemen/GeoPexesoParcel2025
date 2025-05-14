@@ -1,14 +1,6 @@
 {
     "section1": {
-        "files": [
-            {
-                "url": {
-                    "IMG": "assets/animace/clovicek_jde.png"
-                },
-                "type": "texture",
-                "key": "clovicek_jde"
-            }
-        ]
+        "files": []
     },
     "meta": {
         "app": "Phaser Editor 2D - Asset Pack Editor",
