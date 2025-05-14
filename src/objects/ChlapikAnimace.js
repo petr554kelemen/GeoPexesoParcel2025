@@ -41,12 +41,12 @@ class ChlapikAnimace {
         this.scene.anims.create({
             key: 'tlaci',
             frames: [
-                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10006' },
-                { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10007' },
+                //{ key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10006' },
+                //{ key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10007' },
                 { key: 'chlapik_animace', frame: 'Clovicek-stoji-jde-tlaci-10008' }
             ],
-            frameRate: 3,
-            repeat: -1 // Nebo 0, pokud to má být statický obrázek
+            frameRate: 2,
+            repeat: 1 // Nebo 0, pokud to má být statický obrázek
         });
     }
 
