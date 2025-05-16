@@ -1,5 +1,5 @@
 // 13/5/2025 19:13
-window.DEBUG_MODE = true;
+window.DEBUG_MODE = false;
 
 import Phaser from 'phaser';
 //import { poziceMysi } from '../poziceMysi.js';
@@ -209,6 +209,7 @@ export default class Game extends Phaser.Scene {
     vyhodnotCilovouZonu() {
         const bednaStredX = this.bedna.body.center.x;
         const bednaStredY = this.bedna.body.center.y;
+        
         const rychlostBednyX = Math.abs(this.bedna.body.velocity.x);
         const rychlostBednyY = Math.abs(this.bedna.body.velocity.y);
         const maximalniRychlostProDokonceni = 10;
@@ -217,7 +218,7 @@ export default class Game extends Phaser.Scene {
 
         const zelenaZonaBounds = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
         const jeBednaStredVZeleneZone = Phaser.Geom.Rectangle.Contains(zelenaZonaBounds, bednaStredX, bednaStredY);
-        const jeBednaPomala = rychlostBednyX < maximalniRychlostProDokonceni && rychlostBednyY < maximalniRychlostProDokonceni;
+        const jeBednaPomala = rychlostBednyX < maximalniRychlostProDokonceni;
 
         const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
         const jeBednaStredVCerveneZone = Phaser.Geom.Rectangle.Contains(cervenaZonaBounds, bednaStredX, bednaStredY);
@@ -225,9 +226,10 @@ export default class Game extends Phaser.Scene {
         if (jeBednaStredVZeleneZone) {
             this.cilovaZonaData.souradniceText.setText(txtZelena).setStyle({ fill: '#00ff00', fontStyle: '', shadowBlur: 0 }).setVisible(true);
             if (jeBednaPomala && !this.hraDokoncena) {
-                console.log('Hra dokončena (střed bedny v zóně a bedna je pomalá)!');
+                if (window.DEBUG_MODE) console.log('Hra dokončena (střed bedny v zóně a bedna je pomalá)!');
                 this.hraDokoncena = true;
                 this.bedna.body.velocity.x = 0;
+                this.bedna.body.setImmovable();
                 if (this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
                     this.cilovaZonaData.souradniceText.preFX.clear();
                     this.cilovaZonaData.blurFx = null;
@@ -235,14 +237,14 @@ export default class Game extends Phaser.Scene {
                 this.cilovaZonaData.prekryvaZelenou = true;
                 this.cilovaZonaData.prekryvaCervenou = false;
             } else if (!this.cilovaZonaData.prekryvaZelenou) {
-                console.log("Bedna vstoupila do zelené zóny!");
+                if (window.DEBUG_MODE) console.log("Bedna vstoupila do zelené zóny!");
                 this.cilovaZonaData.prekryvaZelenou = true;
                 this.cilovaZonaData.prekryvaCervenou = false;
             }
         } else if (jeBednaStredVCerveneZone) {
             this.cilovaZonaData.souradniceText.setText(txtCervena).setStyle({ fill: '#ff0000', fontStyle: '', shadowBlur: 2 }).setVisible(true);
             if (!this.cilovaZonaData.prekryvaCervenou) {
-                console.log("Střed bedny vstoupil do červené zóny!");
+                if (window.DEBUG_MODE) console.log("Střed bedny vstoupil do červené zóny!");
                 if (!this.cilovaZonaData.blurFx && this.cilovaZonaData.souradniceText.preFX) {
                     this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.preFX.addBlur();
                     this.tweens.add({ targets: this.cilovaZonaData.blurFx, strength: 1.5, duration: 1000, yoyo: true, repeat: -1 });
@@ -337,9 +339,9 @@ export default class Game extends Phaser.Scene {
             this.chlapik.alpha = 1;
         }
 
-        const bednaBounds = this.bedna.getBounds();
-        const zelenaZonaBounds = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
-        const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
+        //const bednaBounds = this.bedna.getBounds();
+        //const zelenaZonaBounds = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
+        //const cervenaZonaBounds = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
 
         this.vyhodnotCilovouZonu();
 
@@ -368,7 +370,6 @@ export default class Game extends Phaser.Scene {
 
     muzeKolizovat(_chlapik, _bedna) {
         return true; // Pro teleportaci necháme kolize vždy povolené
-        //console.log();
 
     }
 }
