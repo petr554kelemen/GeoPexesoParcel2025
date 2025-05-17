@@ -13,9 +13,8 @@ export default class Boot extends Scene {
 
         this.load.image("pictureChlapik", "assets/animace/Clovicek-stoji-jde-tlaci.png"); //spritesheet pro animace hry
         this.load.image("pictureBedna", "assets/Bedna.png"); //spritesheet bedny
-        //this.load.atlas('chlapik_jde', 'assets/animace/clovicek_jde.png', 'assets/animace/clovicek_jde_atlas.json');
-        //this.load.spritesheet('chlapik_stoji', 'assets/animace/clovicek_jde.png', { frameWidth: 110, frameHeight: 140 });
-        //this.load.atlas('chlapik_tlaci', 'assets/animace/Chlapik-tlaci-spritesheet.png', 'assets/animace/Chlapik-tlaci-atlas.json');
+        this.load.atlas('chlapik_animace', 'assets/animace/clovicek-stoji-jde-tlaci.png', 'assets/animace/clovicek-stoji-jde-tlaci.json');
+    
     }
 
     create() {

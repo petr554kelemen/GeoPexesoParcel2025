@@ -1,5 +1,6 @@
 import Boot from './scenes/Boot';
 import Game from './scenes/Game';
+import GameFinal from './scenes/GameFinal';
 import GameOver from './scenes/GameOver';
 import MainMenu from './scenes/MainMenu';
 import Preloader from './scenes/Preloader';
@@ -19,10 +20,10 @@ const config = {
     },
     scene: [
         Boot,
-        //PathBuilder,
         Preloader,
         MainMenu,
         Game,
+        GameFinal,
         GameOver
     ],
     physics: {
@@ -51,7 +52,7 @@ const config = {
         //    tileBias: 16,
             forceX: false,
         //    isPaused: false,
-            debug: true,
+            debug: window.DEBUG_MODE,
             debugShowBody: true,
             debugShowStaticBody: true,
             debugShowVelocity: true,
