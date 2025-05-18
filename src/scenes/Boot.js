@@ -18,6 +18,8 @@ export default class Boot extends Scene {
         this.load.plugin('rexflipplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexflipplugin.min.js', true);
         this.load.plugin('rexlifetimeplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexlifetimeplugin.min.js', true);
         this.load.atlas('pexeso', "assets/images/atlas_pexeso.png", "assets/images/atlas_pexeso_atlas.json");
+
+        this.load.image('heart','assets/images/heart-icon-2.png');
     }
 
     create() {
