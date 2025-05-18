@@ -1,17 +1,24 @@
 'use strict'
 
+
+
 //import casomira from './casomirascene.js';
 //import texty from './texty.js';
 
+
+
 export default class Game extends Phaser.Scene {
+
     constructor() {
         super({
             key: 'Game'
+
         });
 
         this.odpocetCasu = null;
         this.casText = null;
         this.card = null;
+
     }
 
     preload() {
@@ -29,10 +36,12 @@ export default class Game extends Phaser.Scene {
         bck_ground.scaleX = gameWidth / 800 * 1.6;
         bck_ground.scaleY = gameHeight / 600 * 1.25;
 
-        this.casText = this.add.text(gameWidth - 150, 31, '');
+        bck_ground.preFX.addBlur(0, 4, 2, 2, 16777215, 4);
+        this.casText = this.add.text(gameWidth - 150, 31, '').setVisible(false);
 
         this.cards = this.add.group();
         this.selectedCards = [];
+
         let cardValues = ['card1', 'card1', 'card2', 'card2', 'card3', 'card3', 'card4', 'card4', 'card5', 'card5', 'card6', 'card6', 'card7', 'card7', 'card8', 'card8', 'card9', 'card9',
             'card10', 'card10', 'card11', 'card11', 'card12', 'card12'];
 
@@ -48,7 +57,7 @@ export default class Game extends Phaser.Scene {
         let startY = paddingY + cardHeight / 2 + 50;
         let stepX = cardWidth + paddingX;
         let stepY = cardHeight + paddingY;
-        let index = 0;
+        this.index = 0;
 
         const startPileX = gameWidth / 2;
         const startPileY = gameHeight / 2;
@@ -62,25 +71,64 @@ export default class Game extends Phaser.Scene {
 
         // Vytvoření textu bubliny
         const bubbleText = this.add.text(gameWidth / 2, gameHeight / 2,
-            "Vítejte ve hře !\nZa každých odehraných 1800ms,\nztratíš 1 život. Je to boj s časem.\nKlikněte pro spuštění.",
+            "Vítej ve hře !\nZa každých odehraných 18s,\nztratíš 1 život. Je to boj s časem.\nKlikni pro spuštění.",
             {
                 fontFamily: 'Arial',
                 fontSize: 28,
                 color: '#242424',
                 align: 'center'
-            }
-        )
+            })
             .setOrigin(0.5)
             .setDepth(3);
 
         // Skupina pro bublinu (pro snadnější manipulaci)
         const infoBubble = this.add.container(0, 0, [bubbleBackground, bubbleText]);
 
+        // Vytvoření srdíček
+        this.hearts = this.add.group();
+        const heartSpacing = 30;
+        let startHeartX = gameWidth - 350;
+        const heartY = 50;
+
+        for (let i = 0; i < 10; i++) {
+            const heart = this.add.sprite(startHeartX + i * heartSpacing, heartY, 'heart').setScale(0.4);
+            this.hearts.add(heart);
+        }
+
+        // Celkový čas v milisekundách
+        const totalTime = 3 * 60 * 1000;
+        const numHearts = 10;
+        this.interval = totalTime / numHearts;
+        this.heartsRemoved = 0; // Přidali jsme 'this' pro přístup v flipCard
+        this.timerStarted = false; // Přidali jsme příznak, zda časovač běží
+        this.heartTimer = null;   // Inicializujeme časovač jako null
+
+        // Časovač pro ubírání srdíček
+        this.heartTimer = this.time.addEvent({
+            delay: this.interval,
+            callback: () => {
+                if (this.heartsRemoved < this.hearts.getChildren().length) {
+                    const heartToRemove = this.hearts.getChildren()[this.heartsRemoved];
+                    heartToRemove.setTint(0x808080); // Nastavíme šedou barvu (RGB hex)
+                    heartToRemove.setAlpha(0.5);    // Snížíme průhlednost na 50%
+                    this.heartsRemoved++;
+                } else {
+                    this.heartTimer.destroy();
+                    this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
+                    this.input.once('pointerdown', () => {
+                        //chybí metoda                     
+                     });
+                }
+            },
+            callbackScope: this,
+            loop: true
+        });
+
         // Funkce pro spuštění hry (rozdání karet a skrytí bubliny)
         const startGame = () => {
             this.input.off('pointerdown', startGame); // Odstranění listeneru kliknutí
 
-            // Animace zmizení bubliny
+        // Animace zmizení bubliny
             this.tweens.add({
                 targets: infoBubble,
                 alpha: 0,
@@ -94,7 +142,7 @@ export default class Game extends Phaser.Scene {
                         for (let col = 0; col < numCols; col++) {
                             const card = this.add.sprite(startPileX, startPileY, 'pexeso', 'cardback')
                                 .setInteractive()
-                                .setData('value', cardValues[index]);
+                                .setData('value', cardValues[this.index]);
 
                             card.on('pointerdown', () => {
                                 this.flipCard(card);
@@ -106,11 +154,11 @@ export default class Game extends Phaser.Scene {
                                 targets: card,
                                 x: startX + col * stepX,
                                 y: startY + row * stepY,
-                                duration: 500 + index * 50,
+                                duration: 500 + this.index * 50,
                                 ease: 'Cubic.Out'
                             });
 
-                            index++;
+                            this.index++;
                         }
                     }
 
@@ -129,6 +177,7 @@ export default class Game extends Phaser.Scene {
                                 ease: Phaser.Math.Easing.Bounce.InOut,
                                 y: -1000,
                                 onComplete: () => {
+
                                     let scene = this;
 
                                     scene.scene.transition({
@@ -139,7 +188,7 @@ export default class Game extends Phaser.Scene {
                                     });
 
                                     this.scene.stop();
-                                    this.scene.run('Level');
+                                    this.scene.restart();
                                 }
                             });
                         });
@@ -153,6 +202,7 @@ export default class Game extends Phaser.Scene {
     }
 
     flipCard(card) {
+
         if (this.selectedCards.length < 2 && !this.selectedCards.includes(card)) {
             let value = card.getData('value');
 
@@ -171,6 +221,7 @@ export default class Game extends Phaser.Scene {
             this.selectedCards.push(card);
 
             // Aplikace efektu levitace a zvětšení
+
             this.tweens.add({
                 targets: card,
                 y: card.y - 15, // Mírné posunutí nahoru
@@ -178,16 +229,45 @@ export default class Game extends Phaser.Scene {
                 scaleY: 1.05,
                 duration: 200,
                 ease: 'Sine.Out',
-                onStart: () => {
-                    // Přidáme stín, pokud jsme ho předtím chtěli
-                    // card.preFX.addShadow(5, 5, 0.1, 0.8, 0, 2, 0.8);
-                },
                 onComplete: () => {
                     if (this.selectedCards.length === 2) {
                         this.checkMatch();
                     }
                 }
             });
+
+            // Spuštění časovače po první otočené kartě
+            if (!this.timerStarted) {
+
+                this.timerStarted = true;
+                this.heartTimer = this.time.addEvent({
+                    delay: this.interval,
+                    callback: () => {
+                        if (this.heartsRemoved < this.hearts.getChildren().length) {
+                            const heartToRemove = this.hearts.getChildren()[this.heartsRemoved];
+                            heartToRemove.setTint(0x808080);
+                            heartToRemove.setAlpha(0.5);
+                            this.heartsRemoved++;
+                        } else {
+                            if (this.heartTimer) { // Přidána kontrola, zda časovač existuje
+                                this.heartTimer.destroy();
+                                // Zastavíme nebo zničíme původní časovač
+                                if (this.odpocetCasu) {
+                                    this.odpocetCasu.stop(); // Nebo this.odpocetCasu.destroy(); podle potřeby
+                                }
+
+                                this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
+
+                                this.input.once('pointerdown', () => { 
+                                    this.scene.restart(this);
+                                 });
+                            }
+                        }
+                    },
+                    callbackScope: this,
+                    loop: true
+                });
+            }
         }
         // Pokud je karta již vybraná, neděláme nic
     }
@@ -210,12 +290,11 @@ export default class Game extends Phaser.Scene {
                     duration: 200,
                     ease: 'Sine.In',
                     onComplete: () => {
-                        //removeShadow(card1);
-                        //removeShadow(card2);
                         card1.destroy();
                         card2.destroy();
+
                         if (this.cards.getChildren().length === 0) {
-                            this.scene.start('GameOver'); //změnit na správnou scénu 
+                            this.scene.start('Game'); //změnit na správnou scénu
                         };
                     }
                 });
@@ -237,6 +316,7 @@ export default class Game extends Phaser.Scene {
                     paused: false,
                     persist: false,
                 });
+
                 chain.add({
                     targets: card2,
                     x: -2000,
@@ -245,12 +325,16 @@ export default class Game extends Phaser.Scene {
                     ease: 'Cubic',
                     duration: 1000,
                 });
+
                 chain.restart();
             });
             this.selectedCards = [];
+
         } else {
             this.time.delayedCall(1500, () => {
+
                 // Otočení karet zpět pomocí flip pluginu
+
                 let flip1 = this.plugins.get('rexflipplugin').add(card1, {
                     duration: 300,
                     face: 'front', // Začínáme zobrazenou stranou
@@ -260,6 +344,7 @@ export default class Game extends Phaser.Scene {
                     perspective: 800,
                     ease: 'Sine.InOut',
                 });
+
                 flip1.flip();
 
                 let flip2 = this.plugins.get('rexflipplugin').add(card2, {
@@ -271,6 +356,7 @@ export default class Game extends Phaser.Scene {
                     perspective: 800,
                     ease: 'Sine.InOut',
                 });
+
                 flip2.flip();
 
                 this.tweens.add({
@@ -293,16 +379,18 @@ export default class Game extends Phaser.Scene {
     goToText(scene, txt) {
         scene.add.text(this.sys.game.scale.width / 2, this.sys.game.scale.height / 2,
             txt,
-            { align: "center", strokeThickness: 4, fontSize: 40, fontStyle: "bold", color: "#8c7ae6" }
-        )
+            { align: "center", strokeThickness: 4, fontSize: 40, fontStyle: "bold", color: "#8c7ae6" })
             .setOrigin(.5)
             .setDepth(3)
             .setInteractive();
     }
 
     update() {
+
         if (this.odpocetCasu) { // Zkontrolujeme, zda this.odpocetCasu existuje
+
             let time = Phaser.Math.RoundTo(this.odpocetCasu.remainder / 1000, 0);
+
             //console.info(time);
 
             if (time < 30) {
