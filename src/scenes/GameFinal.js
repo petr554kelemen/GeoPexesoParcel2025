@@ -70,8 +70,7 @@ export default class GameFinal extends Phaser.Scene {
         this.chlapik.body.setSize(53, 118);
         this.chlapik.body.setOffset(10, 2);
         this.chlapik.body.setMaxSpeed(120);
-        this.chlapik.body.setAcceleration(10, 0);
-        this.chlapik.setDepth(100);
+                this.chlapik.setDepth(100);
     }
 
     initBedna() {
@@ -141,6 +140,11 @@ export default class GameFinal extends Phaser.Scene {
         this.bedna.body.setVelocity(0, 0);
         this.chlapik.setVelocityX(0);
         this.cilovaZonaData.souradniceText.setText(this.souradniceFinal).setVisible(true);
+        if (this.sys.game.renderer.type === Phaser.WEBGL && this.cilovaZonaData.blurFx) {
+            this.cilovaZonaData.blurFx.radius = 0;
+        }
+        this.cilovaZonaData.souradniceText.setAlpha(1);
+        this.cilovaZonaData.souradniceText.setShadow(0, 0, "#000", 0, false, false);
     }
 
     spustTeleportaci() {
@@ -169,7 +173,11 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     update() {
-        if (this.hraDokoncena) return;
+        if (this.hraDokoncena) {
+            this.chlapik.setVelocityX(0);
+            this.chlapikAnimace.play('stoji', true);
+            return;
+        }
 
         let tlaci = false;
 
@@ -206,71 +214,60 @@ export default class GameFinal extends Phaser.Scene {
 
         // --- vyhodnocení zón a zobrazení souřadnic ---
         const isWebGL = this.sys.game.renderer.type === Phaser.WEBGL;
-        const bednaBounds = this.bedna.getBounds();
-        const cervena = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
-        const zelena = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
-
-        const prekryvaCervenou = Phaser.Geom.Intersects.RectangleToRectangle(bednaBounds, cervena);
-        const prekryvaZelenou = Phaser.Geom.Intersects.RectangleToRectangle(bednaBounds, zelena);
-
-        const tolerance = 25;
         const vzdalenostStredu = Math.abs(this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x);
         const velocityX = Math.abs(this.bedna.body.velocity.x);
+        const tolerance = 25;
 
-        if (prekryvaCervenou && !prekryvaZelenou) {
-            if (isWebGL) {
-                this.cilovaZonaData.souradniceText.setText(this.souradniceFake).setVisible(true).setColor('#ff3333');
-                if (!this.cilovaZonaData.blurFx) {
-                    this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.postFX.addBlur(4);
+        if (vzdalenostStredu < tolerance && velocityX < 5) {
+            this.spustDokonceniHry();
+        } else if (!this.hraDokoncena) {
+            const bednaBounds = this.bedna.getBounds();
+            const cervena = this.cilovaZonaData.cervenaZonaObjekt.getBounds();
+            const zelena = this.cilovaZonaData.zelenaZonaObjekt.getBounds();
+
+            const prekryvaCervenou = Phaser.Geom.Intersects.RectangleToRectangle(bednaBounds, cervena);
+            const prekryvaZelenou = Phaser.Geom.Intersects.RectangleToRectangle(bednaBounds, zelena);
+
+            if (prekryvaZelenou) {
+                if (isWebGL) {
+                    this.cilovaZonaData.souradniceText.setText(this.souradniceFinal).setVisible(true).setColor('#33ff33');
+                    if (!this.cilovaZonaData.blurFx) {
+                        this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.postFX.addBlur(4);
+                    } else {
+                        this.cilovaZonaData.blurFx.radius = 4;
+                    }
                 } else {
-                    this.cilovaZonaData.blurFx.radius = 4;
+                    const realMasked = "N 50°05.XXX E 017°20.XXX";
+                    this.cilovaZonaData.souradniceText.setText(realMasked).setVisible(true).setColor('#33ff33');
+                    this.cilovaZonaData.souradniceText.setAlpha(0.5);
+                    this.cilovaZonaData.souradniceText.setShadow(2, 2, "#fff", 6, true, true);
+                }
+            } else if (prekryvaCervenou) {
+                if (isWebGL) {
+                    this.cilovaZonaData.souradniceText.setText(this.souradniceFake).setVisible(true).setColor('#ff3333');
+                    if (!this.cilovaZonaData.blurFx) {
+                        this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.postFX.addBlur(4);
+                    } else {
+                        this.cilovaZonaData.blurFx.radius = 4;
+                    }
+                } else {
+                    this.cilovaZonaData.souradniceText.setText(this.souradniceZastupne).setVisible(true).setColor('#ff3333');
+                    this.cilovaZonaData.souradniceText.setAlpha(0.5);
+                    this.cilovaZonaData.souradniceText.setShadow(2, 2, "#fff", 6, true, true);
                 }
             } else {
-                this.cilovaZonaData.souradniceText.setText(this.souradniceZastupne).setVisible(true).setColor('#ff3333');
-                this.cilovaZonaData.souradniceText.setAlpha(0.5);
-                this.cilovaZonaData.souradniceText.setShadow(2, 2, "#fff", 6, true, true);
-            }
-        } else if (prekryvaZelenou && !(vzdalenostStredu < tolerance && velocityX < 5)) {
-            if (isWebGL) {
-                this.cilovaZonaData.souradniceText.setText(this.souradniceFinal).setVisible(true).setColor('#33ff33');
-                if (!this.cilovaZonaData.blurFx) {
-                    this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.postFX.addBlur(4);
-                } else {
-                    this.cilovaZonaData.blurFx.radius = 4;
+                this.cilovaZonaData.souradniceText.setVisible(false);
+                if (isWebGL && this.cilovaZonaData.blurFx) {
+                    this.cilovaZonaData.blurFx.radius = 0;
                 }
-            } else {
-                const realMasked = "N 50°05.XXX E 017°20.XXX";
-                this.cilovaZonaData.souradniceText.setText(realMasked).setVisible(true).setColor('#33ff33');
-                this.cilovaZonaData.souradniceText.setAlpha(0.5);
-                this.cilovaZonaData.souradniceText.setShadow(2, 2, "#fff", 6, true, true);
+                this.cilovaZonaData.souradniceText.setAlpha(1);
+                this.cilovaZonaData.souradniceText.setShadow(0, 0, "#000", 0, false, false);
             }
-        } else if (prekryvaZelenou && vzdalenostStredu < tolerance && velocityX < 5) {
-            this.cilovaZonaData.souradniceText.setText(this.souradniceFinal).setVisible(true).setColor('#33ff33');
-            if (isWebGL && this.cilovaZonaData.blurFx) {
-                this.cilovaZonaData.blurFx.radius = 0;
-            }
-            this.cilovaZonaData.souradniceText.setAlpha(1);
-            this.cilovaZonaData.souradniceText.setShadow(0, 0, "#000", 0, false, false);
-        } else {
-            this.cilovaZonaData.souradniceText.setVisible(false);
-            if (isWebGL && this.cilovaZonaData.blurFx) {
-                this.cilovaZonaData.blurFx.radius = 0;
-            }
-            this.cilovaZonaData.souradniceText.setAlpha(1);
-            this.cilovaZonaData.souradniceText.setShadow(0, 0, "#000", 0, false, false);
         }
 
         // --- vyhodnocení cílové zóny ---
-        console.log("Kontrola cíle:", {
-            prekryvaZelenou,
-            vzdalenostStredu,
-            velocityX,
-            tolerance
-        });
+        // (odstraněno, protože bylo duplikováno výše)
 
-        if (prekryvaZelenou && vzdalenostStredu < tolerance && velocityX < 5) {
-            this.spustDokonceniHry();
-        }
 
         // --- stopky ---
         if (this.stopkyBezi) {
