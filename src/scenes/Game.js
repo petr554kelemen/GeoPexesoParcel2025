@@ -10,7 +10,6 @@ export default class Game extends Phaser.Scene {
         this.odpocetCasu = null;
         this.casText = null;
         this.card = null;
-
     }
 
     preload() {
@@ -20,6 +19,7 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
+        const self = this;
         const gameWidth = this.scale.width;
         const gameHeight = this.scale.height;
 
@@ -30,6 +30,12 @@ export default class Game extends Phaser.Scene {
         bck_ground.preFX.addBlur(0, 4, 2, 2, 16777215, 4);
         this.casText = this.add.text(gameWidth - 150, 31, '').setVisible(false);
 
+        const totalTime = 3 * 60 * 1000;
+        const numHearts = 10;
+        this.interval = totalTime / numHearts;
+        this.heartsRemoved = 0;
+        this.timerStarted = false;
+        this.hearts = this.add.group();
         this.cards = this.add.group();
         this.selectedCards = [];
 
@@ -86,39 +92,39 @@ export default class Game extends Phaser.Scene {
             this.hearts.add(heart);
         }
 
-        // Celkový čas v milisekundách
-        const totalTime = 3 * 60 * 1000;
-        const numHearts = 10;
-        this.interval = totalTime / numHearts;
-        this.heartsRemoved = 0; // Přidali jsme 'this' pro přístup v flipCard
-        this.timerStarted = false; // Přidali jsme příznak, zda časovač běží
-        this.heartTimer = null; // Inicializujeme časovač jako null
+        // // Celkový čas v milisekundách
+        // const totalTime = 3 * 60 * 1000;
+        // const numHearts = 10;
+        // this.interval = totalTime / numHearts;
+        // this.heartsRemoved = 0; // Přidali jsme 'this' pro přístup v flipCard
+        // this.timerStarted = false; // Přidali jsme příznak, zda časovač běží
+        // this.heartTimer = null; // Inicializujeme časovač jako null
 
-        // Časovač pro ubírání srdíček
-        this.heartTimer = this.time.addEvent({
-            delay: totalTime / numHearts,
-            callback: () => {
-                console.log("Nastavený delay:", this.heartTimer.delay);
-                
-                if (this.heartsRemoved < this.hearts.getChildren().length) {
-                    const heartToRemove = this.hearts.getChildren()[this.heartsRemoved];
-                    heartToRemove.setTint(0x808080); // Nastavíme šedou barvu (RGB hex)
-                    heartToRemove.setAlpha(0.5); // Snížíme průhlednost na 50%
-                    
-                    this.heartsRemoved++;
+        // // Časovač pro ubírání srdíček
+        // this.heartTimer = this.time.addEvent({
+        //     delay: totalTime / numHearts,
+        //     callback: () => {
+        //         console.log("Nastavený delay:", this.heartTimer.delay);
 
-                } else {
-                    this.heartTimer.destroy();
-                    //this.scene.pause(this);
-                    this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
-                    this.input.once('pointerdown', () => {
-                        this.scene.restart();
-                    });
-                }
-            },
-            callbackScope: this,
-            loop: true
-        });
+        //         if (this.heartsRemoved < this.hearts.getChildren().length) {
+        //             const heartToRemove = this.hearts.getChildren()[this.heartsRemoved];
+        //             heartToRemove.setTint(0x808080); // Nastavíme šedou barvu (RGB hex)
+        //             heartToRemove.setAlpha(0.5); // Snížíme průhlednost na 50%
+
+        //             this.heartsRemoved++;
+
+        //         } else {
+        //             this.heartTimer.destroy();
+        //             //this.scene.pause(this);
+        //             this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
+        //             this.input.once('pointerdown', () => {
+        //                 this.scene.restart();
+        //             });
+        //         }
+        //     },
+        //     callbackScope: this,
+        //     loop: true
+        // });
 
         // Funkce pro spuštění hry (rozdání karet a skrytí bubliny)
         const startGame = () => {
@@ -130,7 +136,7 @@ export default class Game extends Phaser.Scene {
                 alpha: 0,
                 duration: 1000,
                 ease: 'Linear',
-                onComplete: () => {
+                onComplete: () => { // Změníme zpět na standardní funkci
                     infoBubble.destroy();
 
                     // Spuštění časovače ubírání srdíček ZDE!
@@ -169,7 +175,11 @@ export default class Game extends Phaser.Scene {
                                 this.flipCard(card);
                             });
 
-                            this.cards.add(card);
+                            if (!this.cards) {
+                                console.log("this.cards vratil false");
+                                
+                            } else this.cards.add(card);
+
 
                             this.tweens.add({
                                 targets: card,
@@ -188,6 +198,24 @@ export default class Game extends Phaser.Scene {
 
         // Spuštění hry po kliknutí na obrazovku
         this.input.once('pointerdown', startGame);
+    }
+
+    removeHeartDelayed() {
+        if (this.heartsRemoved < this.hearts.getChildren().length) {
+            this.time.delayedCall(this.interval, () => {
+                const heartToRemove = this.hearts.getChildren()[this.heartsRemoved];
+                heartToRemove.setTint(0x808080);
+                heartToRemove.setAlpha(0.5);
+                this.heartsRemoved++;
+                this.removeHeartDelayed(); // Naplánujeme další odebrání
+            }, this);
+        } else {
+            this.scene.pause(this);
+            this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
+            this.input.once('pointerdown', () => {
+                this.scene.restart();
+            });
+        }
     }
 
     flipCard(card) {
@@ -279,6 +307,9 @@ export default class Game extends Phaser.Scene {
                     onComplete: () => {
                         card1.destroy();
                         card2.destroy();
+
+                        if (window.DEBUG_MODE) console.log('this.cards:', this.cards);
+                        if (window.DEBUG_MODE) console.log('this:', this);
 
                         if (this.cards.getChildren().length === 0) {
                             this.scene.stop();
