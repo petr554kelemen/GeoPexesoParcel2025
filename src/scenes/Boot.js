@@ -35,6 +35,8 @@ export default class Boot extends Scene {
         this.load.atlas('pexeso', "assets/images/atlas_pexeso.png", "assets/images/atlas_pexeso_atlas.json");
 
         this.load.image('heart', 'assets/images/heart-icon-2.png');
+
+        this.load.image('arrow', 'assets/images/arrow.png'); //šipka pro tlačítka
     }
 
     create() {

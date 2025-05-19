@@ -97,7 +97,7 @@ export default class GameFinal extends Phaser.Scene {
             xStred: x,
             yStred: y,
             cervenaZonaObjekt: this.add.rectangle(x, y, 180, 80, 0xff0000).setOrigin(0.5).setAlpha(0.15),
-            zelenaZonaObjekt: this.add.rectangle(x, y, 45, 45, 0x00ff00).setOrigin(0.5).setAlpha(0.4),
+            zelenaZonaObjekt: this.add.rectangle(x, y, 80, 80, 0x00ff00).setOrigin(0.5).setAlpha(0.4),
             souradniceText: this.add.text(x, 30 + vyskaChlapika / 2 + mezeraNad, this.souradniceFake, {
                 font: '48px Georgia',
                 align: 'center',
@@ -114,22 +114,25 @@ export default class GameFinal extends Phaser.Scene {
         this.leftPressed = false;
         this.rightPressed = false;
 
-        const buttonSize = 50;
+        const buttonSize = 64;
         const buttonY = this.cameras.main.height - buttonSize / 2 - 40;
 
-        this.buttonLeft = this.add.rectangle(buttonSize / 2 + 40, buttonY, buttonSize, buttonSize, 0x888888)
-            .setAlpha(1).setInteractive().setScrollFactor(0);
+        this.buttonLeft = this.add.image(buttonSize / 2 + 40, buttonY, 'arrow')
+            .setDisplaySize(64, 64)
+            .setAlpha(1).setInteractive().setScrollFactor(0)
+            .setFlipX(true);
         this.buttonLeft.on('pointerdown', () => this.leftPressed = true);
         this.buttonLeft.on('pointerup', () => this.leftPressed = false);
         this.buttonLeft.on('pointerout', () => this.leftPressed = false);
-        this.buttonLeft.on('pointerout', () => this.cursors.left.isDown = false);
+        
 
-        this.buttonRight = this.add.rectangle(this.cameras.main.width - buttonSize / 2 - 40, buttonY, buttonSize, buttonSize, 0x888888)
+        this.buttonRight = this.add.image(this.cameras.main.width - buttonSize / 2 - 40, buttonY, 'arrow')
+            .setDisplaySize(64, 64)
             .setAlpha(1).setInteractive().setScrollFactor(0);
         this.buttonRight.on('pointerdown', () => this.rightPressed = true);
         this.buttonRight.on('pointerup', () => this.rightPressed = false);
         this.buttonRight.on('pointerout', () => this.rightPressed = false);
-        this.buttonRight.on('pointerout', () => this.cursors.right.isDown = false);
+        
     }
 
     spustDokonceniHry() {
@@ -210,7 +213,7 @@ export default class GameFinal extends Phaser.Scene {
         const prekryvaCervenou = Phaser.Geom.Intersects.RectangleToRectangle(bednaBounds, cervena);
         const prekryvaZelenou = Phaser.Geom.Intersects.RectangleToRectangle(bednaBounds, zelena);
 
-        const tolerance = 10;
+        const tolerance = 25;
         const vzdalenostStredu = Math.abs(this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x);
         const velocityX = Math.abs(this.bedna.body.velocity.x);
 
@@ -257,10 +260,28 @@ export default class GameFinal extends Phaser.Scene {
             this.cilovaZonaData.souradniceText.setShadow(0, 0, "#000", 0, false, false);
         }
 
+        // --- vyhodnocení cílové zóny ---
+        console.log("Kontrola cíle:", {
+            prekryvaZelenou,
+            vzdalenostStredu,
+            velocityX,
+            tolerance
+        });
+
+        if (prekryvaZelenou && vzdalenostStredu < tolerance && velocityX < 5) {
+            this.spustDokonceniHry();
+        }
+
         // --- stopky ---
         if (this.stopkyBezi) {
             this.runningTime = (this.time.now - this.startTime) / 1000;
             this.stopkyText.setText(this.formatCas(this.runningTime));
+        }
+
+        // --- teleportace, pokud bedna přejela ---
+        const vzdalenostZaZonou = this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x;
+        if (!this.hraDokoncena && vzdalenostZaZonou > 200 && !this.teleportaceBezi) {
+            this.spustTeleportaci();
         }
     }
 
