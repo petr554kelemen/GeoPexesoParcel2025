@@ -77,7 +77,7 @@ export default class Preloader extends Phaser.Scene {
         //  For example, you can define global animations here, so we can use them in other scenes.
 		//this.pathBuilder = this.plugins.get('PathBuilderPlugin');
         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-        this.scene.start('MainMenu');
+        this.scene.start('Game');
     }
         /* END-USER-CODE */
 }
