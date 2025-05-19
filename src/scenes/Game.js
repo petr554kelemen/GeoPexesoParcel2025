@@ -4,9 +4,11 @@ export default class Game extends Phaser.Scene {
     constructor() {
         super({
             key: 'Game'
+        });        
+    }
 
-        });
-
+    init() {
+        this.gameOver = false;
         this.odpocetCasu = null;
         this.casText = null;
         this.card = null;
@@ -19,7 +21,8 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
-        const self = this;
+        //const self = this;
+
         const gameWidth = this.scale.width;
         const gameHeight = this.scale.height;
 
@@ -92,40 +95,6 @@ export default class Game extends Phaser.Scene {
             this.hearts.add(heart);
         }
 
-        // // Celkový čas v milisekundách
-        // const totalTime = 3 * 60 * 1000;
-        // const numHearts = 10;
-        // this.interval = totalTime / numHearts;
-        // this.heartsRemoved = 0; // Přidali jsme 'this' pro přístup v flipCard
-        // this.timerStarted = false; // Přidali jsme příznak, zda časovač běží
-        // this.heartTimer = null; // Inicializujeme časovač jako null
-
-        // // Časovač pro ubírání srdíček
-        // this.heartTimer = this.time.addEvent({
-        //     delay: totalTime / numHearts,
-        //     callback: () => {
-        //         console.log("Nastavený delay:", this.heartTimer.delay);
-
-        //         if (this.heartsRemoved < this.hearts.getChildren().length) {
-        //             const heartToRemove = this.hearts.getChildren()[this.heartsRemoved];
-        //             heartToRemove.setTint(0x808080); // Nastavíme šedou barvu (RGB hex)
-        //             heartToRemove.setAlpha(0.5); // Snížíme průhlednost na 50%
-
-        //             this.heartsRemoved++;
-
-        //         } else {
-        //             this.heartTimer.destroy();
-        //             //this.scene.pause(this);
-        //             this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
-        //             this.input.once('pointerdown', () => {
-        //                 this.scene.restart();
-        //             });
-        //         }
-        //     },
-        //     callbackScope: this,
-        //     loop: true
-        // });
-
         // Funkce pro spuštění hry (rozdání karet a skrytí bubliny)
         const startGame = () => {
             this.input.off('pointerdown', startGame); // Odstranění listeneru kliknutí
@@ -153,7 +122,8 @@ export default class Game extends Phaser.Scene {
                                 if (this.heartTimer) {
                                     this.heartTimer.destroy();
                                 }
-                                this.scene.pause(this);
+                                //this.scene.pause(this);
+                                this.gameOver = true;
                                 this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
                                 this.input.once('pointerdown', () => {
                                     this.scene.restart();
@@ -177,7 +147,7 @@ export default class Game extends Phaser.Scene {
 
                             if (!this.cards) {
                                 console.log("this.cards vratil false");
-                                
+
                             } else this.cards.add(card);
 
 
@@ -210,7 +180,8 @@ export default class Game extends Phaser.Scene {
                 this.removeHeartDelayed(); // Naplánujeme další odebrání
             }, this);
         } else {
-            this.scene.pause(this);
+            //this.scene.pause(this);
+            this.gameOver = true;
             this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
             this.input.once('pointerdown', () => {
                 this.scene.restart();
@@ -220,7 +191,7 @@ export default class Game extends Phaser.Scene {
 
     flipCard(card) {
 
-        if (this.selectedCards.length < 2 && !this.selectedCards.includes(card)) {
+        if (this.selectedCards.length < 2 && !this.selectedCards.includes(card) && !this.gameOver) {
             let value = card.getData('value');
 
             let flip = this.plugins.get('rexflipplugin').add(card, {
@@ -238,62 +209,33 @@ export default class Game extends Phaser.Scene {
             this.selectedCards.push(card);
 
             // Aplikace efektu levitace a zvětšení
-
+            card.baseY = card.y;
             this.tweens.add({
                 targets: card,
-                y: card.y - 15, // Mírné posunutí nahoru
-                scaleX: 1.15, // Mírné zvětšení
-                scaleY: 1.15,
-                duration: 100,
+                y: card.baseY - 10, // Mírné posunutí nahoru
+                scaleX: 1.1, // Mírné zvětšení
+                scaleY: 1.1,
+                duration: 150,
                 ease: 'Sine.Out',
                 onComplete: () => {
                     if (this.selectedCards.length === 2) {
+                        // Falešný stín                        
+                        let shadow = this.add.image(card.x + 8, card.y + 8, 'card');
+                        shadow.setTint(0x000000);
+                        shadow.setAlpha(0.5);
+                        shadow.setScale(1);
+                        shadow.setDepth(card.depth - 1); // Pod kartu
+                        card.shadow = shadow;
+
                         this.checkMatch();
                     }
                 }
             });
-
-            /* // Spuštění časovače PO PRVNÍ ÚSPĚŠNĚ OTOČENÉ KARTĚ
-            if (window.DEBUG_MODE) console.log('Před kontrolou this.timerStarted:', this.timerStarted);
-            if (!this.timerStarted && this.selectedCards.length === 1) {
-                if (window.DEBUG_MODE) {
-                    console.log('Spouštím heartTimer'); // Přidaný log
-                    
-                }
-                this.timerStarted = true;
-                if (window.DEBUG_MODE) console.log('Po spuštění this.timerStarted:', this.timerStarted);
-                this.heartTimer = this.time.addEvent({
-                    delay: this.interval,
-                    callback: () => {
-                        if (this.heartsRemoved < this.hearts.getChildren().length) {
-                            const heartToRemove = this.hearts.getChildren()[this.heartsRemoved];
-                            heartToRemove.setTint(0x808080);
-                            heartToRemove.setAlpha(0.5);
-                            this.heartsRemoved++;
-                        } else {
-                            if (this.heartTimer) {
-                                this.heartTimer.destroy();
-                            }
-                            this.goToText(this, "Vypršel časový limit\nZkusit znovu?");
-                            this.input.once('pointerdown', () => {
-                                this.scene.restart();
-                            });
-                        }
-                    },
-                    callbackScope: this,
-                    loop: true
-                });
-            } */
         }
     }
 
     checkMatch() {
         let [card1, card2] = this.selectedCards;
-
-        // const removeShadow = (card) => {
-        //     card.preFX.clear();
-        //     card.setDepth(0); // Vrátíme hloubku na výchozí hodnotu
-        // };
 
         if (card1.getData('value') === card2.getData('value')) {
             this.time.delayedCall(800, () => {
@@ -308,8 +250,8 @@ export default class Game extends Phaser.Scene {
                         card1.destroy();
                         card2.destroy();
 
-                        if (window.DEBUG_MODE) console.log('this.cards:', this.cards);
-                        if (window.DEBUG_MODE) console.log('this:', this);
+                        //if (window.DEBUG_MODE) console.log('this.cards:', this.cards);
+                        //if (window.DEBUG_MODE) console.log('this:', this);
 
                         if (this.cards.getChildren().length === 0) {
                             this.scene.stop();
@@ -379,14 +321,13 @@ export default class Game extends Phaser.Scene {
 
                 this.tweens.add({
                     targets: [card1, card2],
-                    y: (card) => card.y + 15,
+                    y: (card) => card.baseY,
                     scaleX: 1,
                     scaleY: 1,
                     duration: 200,
                     ease: 'Sine.In',
-                    onComplete: () => {
-                        //removeShadow(card1);
-                        //removeShadow(card2);
+                    onComplete: (card) => {
+                        if (card.shadow) card.shadow.destroy();
                         this.selectedCards = [];
                     }
                 });
