@@ -3,6 +3,7 @@
 export default class Game extends Phaser.Scene {
     constructor() {
         super({ key: 'Game' });
+
     }
 
     init() {
@@ -23,9 +24,9 @@ export default class Game extends Phaser.Scene {
     create() {
         const { width, height } = this.scale;
         //dočasné vypnutí scény
-        this.scene.stop();
-        this.scene.start("GameFinal");
-        return;
+        //this.scene.stop();
+        //this.scene.start("GameFinal");
+        //return;
 
         // Pozadí
         const background = this.add.image(width / 2, height / 2, 'backgroundGame');
@@ -63,29 +64,84 @@ export default class Game extends Phaser.Scene {
     }
 
     showStartBubble(callback) {
+        // const { width, height } = this.scale;
+
+        // const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 200, 0xeeeeee)
+        //     .setOrigin(0.5).setStrokeStyle(4, 0x8c7ae6).setDepth(2);
+
+        // const bubbleText = this.add.text(width / 2, height / 2,
+        //     'Vítej ve hře!\nZa každých 18s ztratíš 1 život.\nKlikni pro spuštění.',
+        //     { fontSize: 28, fontFamily: 'Playpen Sans Arabic', color: '#242424', align: 'center' })
+        //     .setOrigin(0.5).setDepth(3);
+
+        // const container = this.add.container(0, 0, [bubbleBg, bubbleText]);
+
+        // this.input.once('pointerdown', () => {
+        //     this.tweens.add({
+        //         targets: container,
+        //         alpha: 0,
+        //         duration: 1000,
+        //         onComplete: () => {
+        //             container.destroy();
+        //             callback();
+        //         }
+        //     });
+        // });
+
         const { width, height } = this.scale;
 
-        const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 200, 0xeeeeee)
-            .setOrigin(0.5).setStrokeStyle(4, 0x8c7ae6).setDepth(2);
+        const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 200, 0xeeeeee, 0.6)
+            .setOrigin(0.5)
+            .setStrokeStyle(4, 0x8c7ae6)
+            .setDepth(2);
 
-        const bubbleText = this.add.text(width / 2, height / 2,
-            'Vítej ve hře!\nZa každých 18s ztratíš 1 život.\nKlikni pro spuštění.',
-            { fontSize: 28, fontFamily: 'Playpen Sans Arabic', color: '#242424', align: 'center' })
-            .setOrigin(0.5).setDepth(3);
+        const fullText = 'Vítej ve hře!\n\nBude to boj s časem\nZa každých 18s ztratíš 1 život.\nKlikni pro spuštění.';
+        const bubbleText = this.add.text(width / 2, height / 2, '', {
+            fontSize: 28,
+            fontFamily: 'Playpen Sans Arabic',
+            color: '#242424',
+            align: 'center',
+            wordWrap: { width: 440 }
+        })
+            .setOrigin(0.5)
+            .setDepth(3);
 
-        const container = this.add.container(0, 0, [bubbleBg, bubbleText]);
+        let charIndex = 0;
+        const revealSpeed = 64; // ms mezi znaky
 
-        this.input.once('pointerdown', () => {
+        const revealText = () => {
+            if (charIndex <= fullText.length) {
+                bubbleText.setText(fullText.substr(0, charIndex));
+                charIndex++;
+                this.time.delayedCall(revealSpeed, revealText, [], this);
+            }
+        };
+        revealText();
+
+        const closeBubble = () => {
             this.tweens.add({
-                targets: container,
+                targets: [bubbleBg, bubbleText],
                 alpha: 0,
-                duration: 1000,
+                duration: 300,
                 onComplete: () => {
-                    container.destroy();
+                    bubbleBg.destroy();
+                    bubbleText.destroy();
                     callback();
                 }
             });
+        };
+
+        this.input.once('pointerdown', () => {
+            if (charIndex <= fullText.length) {
+                charIndex = fullText.length + 1;
+                bubbleText.setText(fullText);
+                this.input.once('pointerdown', closeBubble);
+            } else {
+                closeBubble();
+            }
         });
+
+
     }
 
     spawnCards(values) {

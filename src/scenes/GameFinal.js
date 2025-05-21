@@ -28,8 +28,11 @@ export default class GameFinal extends Phaser.Scene {
         this.posBednaY = height * 0.615;
         this.posChlapikY = this.posBednaY - 25;
         this.physics.world.setBounds(0, 0, width, height);
-        const background = this.add.image(500, 390, "backgroundGame");
-        background.setScale(0.878, 0.962);
+        //const background = this.add.image(500, 390, "backgroundGame");
+        //background.setScale(0.878, 0.962);
+        this.background = this.add.image(500, 390, "backgroundGame");
+        this.background.setScale(0.878, 0.962);
+        this.backgroundDefaultX = this.background.x;
     }
 
     create() {
@@ -184,7 +187,12 @@ export default class GameFinal extends Phaser.Scene {
                 this.bedna.setAlpha(1);
                 this.bedna.body.setVelocity(0, 0);
                 this.bedna.body.setImmovable(false);
-                this.cilovaZonaData.souradniceText.setText(this.souradniceFake).setVisible(false);
+                this.background.x = this.backgroundDefaultX;
+                //this.cilovaZonaData.souradniceText.setText(this.souradniceFake).setVisible(false);
+                //this.hraDokoncena = false;
+                //this.teleportaceBezi = false;
+                this.cilovaZonaData.souradniceTextFake.setText(this.souradniceFake).setAlpha(1);
+                this.cilovaZonaData.souradniceTextFinal.setAlpha(0);
                 this.hraDokoncena = false;
                 this.teleportaceBezi = false;
             }
@@ -237,6 +245,12 @@ export default class GameFinal extends Phaser.Scene {
                     this.cilovaZonaData.blurFx = null;
                 }
             }
+        }
+
+        // Vložen paralax efect
+        if (!this.hraDokoncena && this.background) {
+            const paralaxRatio = 0.15; // uprav si sílu efektu dle vkusu
+            this.background.x -= this.chlapik.body.velocity.x * paralaxRatio * this.game.loop.delta / 1000;
         }
 
         // Ovládání chlapíka
