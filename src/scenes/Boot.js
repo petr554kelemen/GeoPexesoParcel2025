@@ -12,7 +12,7 @@ export default class Boot extends Scene {
 
         WebFont.load({
             google: {
-                families: ['Playpen Sans Arabic: 400'] // Seznam vašich Google Fonts
+                families: ['Playpen Sans Arabic: 400', "DynaPuff: 600"] // Seznam vašich Google Fonts
             },
             active: () => {
                 console.log('Google Fonts načteny.');

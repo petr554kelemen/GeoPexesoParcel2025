@@ -55,6 +55,28 @@
             "y": 501,
             "originX": 0,
             "originY": 1
+        },
+        {
+            "type": "Text",
+            "id": "50d55874-6dcd-4066-a784-eb01d490b41d",
+            "label": "text_1",
+            "x": 228,
+            "y": 285,
+            "originY": 1,
+            "alphaTopRight": 0.84,
+            "alphaBottomLeft": 0.81,
+            "tintFill": true,
+            "text": "N 50°00.000\nE 17°00.000",
+            "fontFamily": "DynaPuff",
+            "fontSize": "90px",
+            "color": "#cc2d2dff",
+            "stroke": "#1f1818ff",
+            "strokeThickness": 2,
+            "shadow.offsetX": 4,
+            "shadow.stroke": true,
+            "shadow.fill": true,
+            "shadow.color": "#060606ff",
+            "shadow.blur": 5
         }
     ],
     "plainObjects": [

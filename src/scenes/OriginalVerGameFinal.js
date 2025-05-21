@@ -89,25 +89,28 @@ export default class GameFinal extends Phaser.Scene {
             yStred: y,
             cervenaZonaObjekt: this.add.rectangle(x, y, 180, 80, 0xff0000).setOrigin(0.5).setAlpha(0.15),
             zelenaZonaObjekt: this.add.rectangle(x, y, 80, 80, 0x00ff00).setOrigin(0.5).setAlpha(0.4),
-            // Tento je „fake“ text, bude fade-in na začátku
-            souradniceTextFake: this.add.text(this.scale.width / 2, 300, this.souradniceFake, {
-                color: "#cc2d2dff",
-                fontFamily: "DynaPuff, Arial, sans-serif",
-                fontSize: "90px",
-                stroke: "#1f1818ff",
-                strokeThickness: 3,
-                shadow: { offsetX: 4, color: "#060606ff", blur: 5, stroke: true, fill: true },
-                align: "center"
-            }).setOrigin(0.5, 1).setAlpha(1),
-            // Tento je „finální“ text, je nejdříve neviditelný
-            souradniceTextFinal: this.add.text(this.scale.width / 2, 300, this.souradniceFinal, {
-                color: "#33ff33",
-                fontFamily: "DynaPuff, Arial, sans-serif",
-                fontSize: "90px",
-                stroke: "#1f1818ff",
-                strokeThickness: 3,
-                align: "center"
-            }).setOrigin(0.5, 1).setAlpha(0),
+            //const text_1 = this.add.text(228, 285, "", {});
+            //text_1.setOrigin(0, 1);
+            //text_1.alphaTopRight = 0.84;
+            //text_1.alphaBottomLeft = 0.81;
+            //text_1.tintFill = true;
+            //text_1.text = "N 50°00.000\nE 17°00.000";
+            //text_1.setStyle({ "color": "#cc2d2dff", "fontFamily": "DynaPuff", "fontSize": "90px", "stroke": "#1f1818ff", "strokeThickness": 2, "shadow.offsetX": 4, "shadow.color": "#060606ff", "shadow.blur": 5, "shadow.stroke": true, "shadow.fill": true });
+            souradniceText: this.add.text(this.scale.width / 2, 300, this.souradniceFake, {})
+                .setOrigin(0.5, 1)
+                .setVisible(false)
+                .setStyle({
+                    "color": "#cc2d2dff",
+                    "fontFamily": "DynaPuff, Arial, sans-serif",
+                    "fontSize": "90px",
+                    "stroke": "#1f1818ff",
+                    "strokeThickness": 3,
+                    "shadow.offsetX": 4,
+                    "shadow.color": "#060606ff",
+                    "shadow.blur": 5,
+                    "shadow.stroke": true,
+                    "shadow.fill": true
+                }),
             blurFx: null
         };
     }
@@ -166,7 +169,7 @@ export default class GameFinal extends Phaser.Scene {
             x: this.scale.width / 2,
             alpha: 1,
             duration: 800,
-            ease: "Power2",
+            easy: "Power2",
             yoyo: false
         });
     }
@@ -197,49 +200,55 @@ export default class GameFinal extends Phaser.Scene {
 
     update() {
         const isWebGL = this.sys.game.renderer.type === Phaser.WEBGL;
-
-        // Výpočet vzdáleností a rychlosti pro vyhodnocení stavu
         const vzdalenostStredu = Math.abs(this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x);
-        const tolerance = 16; // můžeš upravit dle potřeb
         const velocityX = Math.abs(this.bedna.body.velocity.x);
+        const tolerance = 25;
+        const maxVzdalenost = 200;
 
-        // Fade-in efekt pro FAKE text (pouze pokud ještě není dokončeno)
-        if (!this.hraDokoncena && this.cilovaZonaData.souradniceTextFake) {
-            const vzdalenost = vzdalenostStredu;
-            const pomer = Phaser.Math.Clamp(1 - vzdalenost / 200, 0, 1);
-            this.cilovaZonaData.souradniceTextFake.setAlpha(pomer);
+        const vzdalenost = Math.abs(this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x);
+        const max = 200;
+        const pomer = Phaser.Math.Clamp(1 - vzdalenost / max, 0, 1);
+
+        if (!this.hraDokoncena) {
+            this.fakeText.setAlpha(pomer);
         }
 
-        // Přepnutí na FINÁLNÍ text při zastavení bedny ve zóně
-        if (vzdalenostStredu <= tolerance && velocityX <= 5 && !this.hraDokoncena) {
-            this.hraDokoncena = true;
-            this.bedna.body.setImmovable(true);
-            this.bedna.body.setVelocity(0, 0);
-            this.chlapik.setVelocityX(0);
+        if (vzdalenostStredu <= tolerance && velocityX <= 5) {
+            this.spustDokonceniHry();
+        } else if (!this.hraDokoncena && vzdalenostStredu <= 50) {
+            this.cilovaZonaData.souradniceText.setText(this.souradniceZastupne).setVisible(true).setColor('#33ff33');
 
-            // Znič FAKE text (pokud existuje)
-            if (this.cilovaZonaData.souradniceTextFake) {
-                this.cilovaZonaData.souradniceTextFake.destroy();
-                this.cilovaZonaData.souradniceTextFake = null;
-            }
-
-            // Fade-in FINÁLNÍHO textu (pokud existuje)
-            if (this.cilovaZonaData.souradniceTextFinal) {
-                this.tweens.add({
-                    targets: this.cilovaZonaData.souradniceTextFinal,
-                    alpha: 1,
-                    duration: 800,
-                    ease: 'Power2'
-                });
-                // Odstranění případného rozmazání na textu
-                if (isWebGL && this.cilovaZonaData.blurFx) {
-                    this.cilovaZonaData.souradniceTextFinal.postFX.remove(this.cilovaZonaData.blurFx);
-                    this.cilovaZonaData.blurFx = null;
+            if (isWebGL) {
+                if (!this.cilovaZonaData.blurFx) {
+                    this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.postFX.addBlur(4);
+                } else {
+                    this.cilovaZonaData.blurFx.radius = 4;
                 }
+            } else {
+                this.cilovaZonaData.souradniceText.setAlpha(0.5);
+                this.cilovaZonaData.souradniceText.setShadow(2, 2, "#fff", 6, true, true);
+            }
+        } else if (!this.hraDokoncena) {
+            if (isWebGL) {
+                this.cilovaZonaData.souradniceText.setText(this.souradniceFake).setVisible(true).setColor('#ff3333');
+                if (!this.cilovaZonaData.blurFx) {
+                    this.cilovaZonaData.blurFx = this.cilovaZonaData.souradniceText.postFX.addBlur(4);
+                } else {
+                    this.cilovaZonaData.blurFx.radius = 4;
+                }
+            } else {
+                this.cilovaZonaData.souradniceText.setText(this.souradniceZastupne).setVisible(true).setColor('#ff3333');
+                this.cilovaZonaData.souradniceText.setAlpha(0.5);
+                this.cilovaZonaData.souradniceText.setShadow(2, 2, "#fff", 6, true, true);
             }
         }
 
-        // Ovládání chlapíka
+        if (this.hraDokoncena) {
+            this.chlapik.setVelocityX(0);
+            this.chlapikAnimace.play('stoji', true);
+            return;
+        }
+
         const jeKolizeSBednou = Phaser.Geom.Intersects.RectangleToRectangle(
             this.chlapik.getBounds(), this.bedna.getBounds()
         );
@@ -257,19 +266,16 @@ export default class GameFinal extends Phaser.Scene {
             this.chlapikAnimace.play('stoji', true);
         }
 
-        // Stopky (časovač)
         if (this.stopkyBezi) {
             this.runningTime = (this.time.now - this.startTime) / 1000;
             this.stopkyText.setText(this.formatCas(this.runningTime));
         }
 
-        // Pokud bedna přejede cílovou zónu doprava (trestná teleportace zpět)
         const vzdalenostZaZonou = this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x;
         if (!this.hraDokoncena && vzdalenostZaZonou > 200 && !this.teleportaceBezi) {
             this.spustTeleportaci();
         }
     }
-
 
     formatCas(cas) {
         const min = Math.floor(cas / 60);
