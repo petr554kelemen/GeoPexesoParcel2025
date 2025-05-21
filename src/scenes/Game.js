@@ -23,6 +23,8 @@ export default class Game extends Phaser.Scene {
 
     create() {
         const { width, height } = this.scale;
+        localStorage.setItem('cilSplnen', '1'); // PRO LADĚNÍ - po dokončení zakomentuj nebo smaž
+        //localStorage.removeItem('cilSplnen');
         //dočasné vypnutí scény
         //this.scene.stop();
         //this.scene.start("GameFinal");
@@ -56,93 +58,139 @@ export default class Game extends Phaser.Scene {
         let values = Array.from({ length: 12 }, (_, i) => `card${i + 1}`).flatMap(v => [v, v]);
         Phaser.Utils.Array.Shuffle(values);
 
-        // Úvodní bublina s informací
+        // >>> TADY JE ROZHODOVÁNÍ <<<
+        const cilSplnen = localStorage.getItem('cilSplnen') === '1';
+        if (cilSplnen) {
+            this.showStartBubble(null, true, () => {
+                localStorage.removeItem('cilSplnen');
+                this.showStartBubble(() => {
+                    this.spawnCards(values);
+                    this.startTimer();
+                });
+            });
+            return; // Bez tohoto by hra jela dál...
+        }
+
+        // Pokud hráč nemá splněno:
         this.showStartBubble(() => {
             this.spawnCards(values);
             this.startTimer();
         });
     }
 
-    showStartBubble(callback) {
-        // const { width, height } = this.scale;
-
-        // const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 200, 0xeeeeee)
-        //     .setOrigin(0.5).setStrokeStyle(4, 0x8c7ae6).setDepth(2);
-
-        // const bubbleText = this.add.text(width / 2, height / 2,
-        //     'Vítej ve hře!\nZa každých 18s ztratíš 1 život.\nKlikni pro spuštění.',
-        //     { fontSize: 28, fontFamily: 'Playpen Sans Arabic', color: '#242424', align: 'center' })
-        //     .setOrigin(0.5).setDepth(3);
-
-        // const container = this.add.container(0, 0, [bubbleBg, bubbleText]);
-
-        // this.input.once('pointerdown', () => {
-        //     this.tweens.add({
-        //         targets: container,
-        //         alpha: 0,
-        //         duration: 1000,
-        //         onComplete: () => {
-        //             container.destroy();
-        //             callback();
-        //         }
-        //     });
-        // });
-
+    /**
+     * Univerzální bublina: pokud splněno=true, zobrazí dvě tlačítka; jinak normální intro s typewriter efektem.
+     * @param {Function} callback - volá se při kliknutí na "Pokračovat"/"Hrát znovu"
+     * @param {boolean} splneno - true pokud hráč už má splněno
+     * @param {Function} hratznovuCallback - volá se při kliknutí na "Hrát znovu" (pouze při splněno)
+     */
+    showStartBubble(callback, splneno = false, hratznovuCallback = null) {
         const { width, height } = this.scale;
 
-        const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 200, 0xeeeeee, 0.6)
+        const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 220, 0xffffff, 0.6)
             .setOrigin(0.5)
             .setStrokeStyle(4, 0x8c7ae6)
-            .setDepth(2);
+            .setDepth(10);
 
-        const fullText = 'Vítej ve hře!\n\nBude to boj s časem\nZa každých 18s ztratíš 1 život.\nKlikni pro spuštění.';
-        const bubbleText = this.add.text(width / 2, height / 2, '', {
-            fontSize: 28,
+        let fullText, btn1Label, btn2Label;
+        if (splneno) {
+            fullText = 'Máš již splněno!\nChceš hrát znovu, nebo jen zobrazit souřadnice?';
+            btn1Label = "Souřadnice";
+            btn2Label = "Hrát";
+        } else {
+            fullText = 'Vítej ve hře!\n\nBude to boj s časem\nZa každých 18s ztratíš 1 život.';
+            btn1Label = "Pokračovat";
+            btn2Label = null;
+        }
+
+        const bubbleText = this.add.text(width / 2, height / 2 - 35, '', {
+            fontSize: 26,
             fontFamily: 'Playpen Sans Arabic',
             color: '#242424',
             align: 'center',
             wordWrap: { width: 440 }
         })
             .setOrigin(0.5)
-            .setDepth(3);
+            .setDepth(11);
 
         let charIndex = 0;
         const revealSpeed = 64; // ms mezi znaky
 
+        // Typewriter efekt
         const revealText = () => {
             if (charIndex <= fullText.length) {
                 bubbleText.setText(fullText.substr(0, charIndex));
                 charIndex++;
                 this.time.delayedCall(revealSpeed, revealText, [], this);
+            } else {
+                createButtons(); // Tlačítka se vytvoří hned po dopsání textu!
             }
         };
         revealText();
 
-        const closeBubble = () => {
-            this.tweens.add({
-                targets: [bubbleBg, bubbleText],
-                alpha: 0,
-                duration: 300,
-                onComplete: () => {
-                    bubbleBg.destroy();
-                    bubbleText.destroy();
+
+        // Vytvoření tlačítek až po dopsání textu
+        const createButtons = () => {
+            // Primární tlačítko
+            const btn1 = this.add.text(width / 2 - (splneno ? 100 : 0), height / 2 + 60, btn1Label, {
+                fontSize: 24, color: "#2ecc40", backgroundColor: "#eee", padding: { x: 16, y: 5 }
+            })
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true })
+                .setDepth(12);
+
+            let btn2 = null;
+            if (splneno) {
+                btn2 = this.add.text(width / 2 + 100, height / 2 + 60, btn2Label, {
+                    fontSize: 24, color: "#0074d9", backgroundColor: "#eee", padding: { x: 16, y: 5 }
+                })
+                    .setOrigin(0.5)
+                    .setInteractive({ useHandCursor: true })
+                    .setDepth(12);
+            }
+
+            // Akce tlačítek
+            btn1.on('pointerdown', () => {
+                bubbleBg.destroy();
+                bubbleText.destroy();
+                btn1.destroy();
+                if (btn2) btn2.destroy();
+                if (splneno) {
+                    this.scene.start('GameFinal', { preskocIntro: true });
+                } else if (callback) {
                     callback();
                 }
             });
+
+            if (btn2) {
+                btn2.on('pointerdown', () => {
+                    bubbleBg.destroy();
+                    bubbleText.destroy();
+                    btn1.destroy();
+                    btn2.destroy();
+                    if (hratznovuCallback) {
+                        hratznovuCallback();
+                    }
+                });
+            }
         };
 
+        // Zavření/urychlení typewriter efektu
         this.input.once('pointerdown', () => {
             if (charIndex <= fullText.length) {
                 charIndex = fullText.length + 1;
                 bubbleText.setText(fullText);
-                this.input.once('pointerdown', closeBubble);
+                // Po dopsání textu vytvoř tlačítka
+                createButtons();
             } else {
-                closeBubble();
+                // Pokud už je vše dopsané, tlačítka už jsou dostupná
             }
         });
 
-
+        // Pokud nechceš čekat na klik, můžeš vytvořit tlačítka automaticky po dopsání:
+        // this.time.delayedCall(revealSpeed * (fullText.length + 1), createButtons, [], this);
     }
+
 
     spawnCards(values) {
         const { width, height } = this.scale;

@@ -23,7 +23,7 @@ export default class GameFinal extends Phaser.Scene {
         this.souradniceZastupne = `N 50°XX.XXX\nE 017°XX.XXX`;
     }
 
-    init() {
+    init(data) {
         const { height, width } = this.scale.canvas;
         this.posBednaY = height * 0.615;
         this.posChlapikY = this.posBednaY - 25;
@@ -33,9 +33,15 @@ export default class GameFinal extends Phaser.Scene {
         this.background = this.add.image(500, 390, "backgroundGame");
         this.background.setScale(0.878, 0.962);
         this.backgroundDefaultX = this.background.x;
+
+        this.preskocIntro = data && data.preskocIntro;
     }
 
     create() {
+        if (this.preskocIntro) {
+            this.spustDokonceniHry(); // nebo ekvivalent pro zobrazení finálních souřadnic
+            return;
+        }
         this.initChlapik();
         this.initBedna();
         this.initCilovaZona();
@@ -141,27 +147,58 @@ export default class GameFinal extends Phaser.Scene {
 
     spustDokonceniHry() {
         this.hraDokoncena = true;
-        this.bedna.body.setImmovable(true);
-        this.bedna.body.setVelocity(0, 0);
-        this.chlapik.setVelocityX(0);
-        this.cilovaZonaData.souradniceText
-            .setText(this.souradniceFinal)
-            .setVisible(true)
-            .setAlpha(0.1);
 
-        if (this.cilovaZonaData.souradniceText) {
-            this.tweenujText();
+        // Pokud objekty existují, nastav jejich stav (pouze v „herním“ režimu)
+        if (this.bedna && this.bedna.body) {
+            this.bedna.body.setImmovable(true);
+            this.bedna.body.setVelocity(0, 0);
+        }
+        if (this.chlapik && this.chlapik.body) {
+            this.chlapik.setVelocityX(0);
+        }
+
+        // Vždy zobraz finální text
+        if (this.cilovaZonaData && this.cilovaZonaData.souradniceTextFinal) {
+            this.cilovaZonaData.souradniceTextFinal
+                .setText(this.souradniceFinal)
+                .setAlpha(1)
+                .setVisible(true);
+
+            this.tweens.add({
+                targets: this.cilovaZonaData.souradniceTextFinal,
+                alpha: 1,
+                duration: 800,
+                ease: "Power2"
+            });
+
+            if (this.sys.game.renderer.type === Phaser.WEBGL && this.cilovaZonaData.blurFx) {
+                this.cilovaZonaData.souradniceTextFinal.postFX.remove(this.cilovaZonaData.blurFx);
+                this.cilovaZonaData.blurFx = null;
+            }
+            this.cilovaZonaData.souradniceTextFinal.setShadow(0, 0, "#000", 0, false, false);
         } else {
-            console.warn('Neexistujici vlstnost this.cilovaZonaData.souradniceText');
+            // Pokud se načítá pouze finální souřadnice (preskocIntro), možná potřebuješ inicializovat text:
+            if (!this.cilovaZonaData) {
+                // Vytvoř alespoň text a potřebný objekt!
+                const x = this.scale.width / 2;
+                const y = this.scale.height * 0.615; // orientačně do výšky bedny
+                this.cilovaZonaData = {
+                    souradniceTextFinal: this.add.text(x, 300, this.souradniceFinal, {
+                        color: "#33ff33",
+                        fontFamily: "DynaPuff, Arial, sans-serif",
+                        fontSize: "90px",
+                        stroke: "#1f1818ff",
+                        strokeThickness: 3,
+                        align: "center"
+                    }).setOrigin(0.5, 1).setAlpha(1),
+                    blurFx: null
+                };
+            }
         }
-
-        if (this.sys.game.renderer.type === Phaser.WEBGL && this.cilovaZonaData.blurFx) {
-            this.cilovaZonaData.souradniceText.postFX.remove(this.cilovaZonaData.blurFx);
-            this.cilovaZonaData.blurFx = null;
-        }
-        this.cilovaZonaData.souradniceText.setAlpha(1);
-        this.cilovaZonaData.souradniceText.setShadow(0, 0, "#000", 0, false, false);
     }
+
+
+
 
     tweenujText() {
         this.tweens.add({
