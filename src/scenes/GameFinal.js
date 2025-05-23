@@ -1,4 +1,38 @@
 // 16/5/2025 19:38
+/**
+ * GameFinal Scene – logická mapa
+ * 
+ * Pořadí a závislosti:
+ * 
+ * 1. init(data)
+ *    - Rozpozná, jestli má běžet režim „pouze souřadnice“ (preskocIntro)
+ *    - Nastaví pozice, fyziku, pozadí (pokud není preskocIntro)
+ * 
+ * 2. create()
+ *    - Pokud preskocIntro: zobrazí pouze souřadnice + tlačítko zpět, ukončí scénu
+ *    - Jinak spouští herní režim:
+ *        - initChlapik()
+ *        - initBedna()
+ *        - initCilovaZona()
+ *        - initControls()
+ *        - initStopky()
+ *        - Napoveda
+ *        - startTime, stopkyBezi
+ * 
+ * 3. update()
+ *    - Jen v herním režimu (preskocIntro === false)
+ *    - Sleduje stav hry: pohyb bedny, chlapíka, kolize, čas, zónu
+ *    - Přepíná texty, spouští efekty, řeší dokončení nebo teleportace
+ * 
+ * Další klíčové funkce:
+ *    - spustDokonceniHry() – zobrazí finální souřadnice
+ *    - spustTeleportaci() – vrací objekty na start
+ *    - tweenujText(), formatCas()
+ *
+ * Vstupní bod: create()
+ * Výstup: Zobrazení souřadnic / dokončení hry / možnost restartu
+ */
+
 window.DEBUG_MODE = true;
 
 import Phaser from 'phaser';
@@ -24,24 +58,44 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     init(data) {
-        const { height, width } = this.scale.canvas;
-        this.posBednaY = height * 0.615;
-        this.posChlapikY = this.posBednaY - 25;
-        this.physics.world.setBounds(0, 0, width, height);
-        //const background = this.add.image(500, 390, "backgroundGame");
-        //background.setScale(0.878, 0.962);
-        this.background = this.add.image(500, 390, "backgroundGame");
-        this.background.setScale(0.878, 0.962);
-        this.backgroundDefaultX = this.background.x;
-
         this.preskocIntro = data && data.preskocIntro;
+        if (!this.preskocIntro) {
+            const { height, width } = this.scale.canvas;
+            this.posBednaY = height * 0.615;
+            this.posChlapikY = this.posBednaY - 25;
+            this.physics.world.setBounds(0, 0, width, height);
+            this.background = this.add.image(500, 390, "backgroundGame");
+            this.background.setScale(0.878, 0.962);
+            this.backgroundDefaultX = this.background.x;
+        }
     }
 
     create() {
+        // === MINIMALISTICKÝ REŽIM: Pouze souřadnice ===
         if (this.preskocIntro) {
-            this.spustDokonceniHry(); // nebo ekvivalent pro zobrazení finálních souřadnic
+            this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0xffffff, 0.98);
+
+            this.add.text(this.scale.width / 2, this.scale.height / 2, this.souradniceFinal, {
+                color: "#33ff33",
+                fontFamily: "DynaPuff, Arial, sans-serif",
+                fontSize: "90px",
+                stroke: "#1f1818ff",
+                strokeThickness: 3,
+                align: "center"
+            }).setOrigin(0.5);
+
+            // Nepovinné tlačítko zpět/hrát znovu
+            const btn = this.add.text(this.scale.width / 2, this.scale.height / 2 + 120, "↩️ Hrát znovu", {
+                fontSize: 36, color: "#444", backgroundColor: "#fff", padding: { x: 24, y: 10 }
+            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            btn.on('pointerdown', () => {
+                localStorage.removeItem('cilSplnen');
+                this.scene.start('Game');
+            });
             return;
         }
+
+        // === HERNÍ REŽIM (plná logika) ===
         this.initChlapik();
         this.initBedna();
         this.initCilovaZona();
@@ -90,25 +144,19 @@ export default class GameFinal extends Phaser.Scene {
     initCilovaZona() {
         const x = this.scale.width / 2;
         const y = this.bedna.body.center.y;
-        const vyskaChlapika = 120;
-        const mezeraNad = 30;
-
         this.cilovaZonaData = {
             xStred: x,
             yStred: y,
             cervenaZonaObjekt: this.add.rectangle(x, y, 180, 80, 0xff0000).setOrigin(0.5).setAlpha(0.15),
             zelenaZonaObjekt: this.add.rectangle(x, y, 80, 80, 0x00ff00).setOrigin(0.5).setAlpha(0.4),
-            // Tento je „fake“ text, bude fade-in na začátku
             souradniceTextFake: this.add.text(this.scale.width / 2, 300, this.souradniceFake, {
                 color: "#cc2d2dff",
                 fontFamily: "DynaPuff, Arial, sans-serif",
                 fontSize: "90px",
                 stroke: "#1f1818ff",
                 strokeThickness: 3,
-                shadow: { offsetX: 4, color: "#060606ff", blur: 5, stroke: true, fill: true },
                 align: "center"
             }).setOrigin(0.5, 1).setAlpha(1),
-            // Tento je „finální“ text, je nejdříve neviditelný
             souradniceTextFinal: this.add.text(this.scale.width / 2, 300, this.souradniceFinal, {
                 color: "#33ff33",
                 fontFamily: "DynaPuff, Arial, sans-serif",
@@ -125,10 +173,8 @@ export default class GameFinal extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.leftPressed = false;
         this.rightPressed = false;
-
         const buttonSize = 64;
         const buttonY = this.cameras.main.height - buttonSize / 2 - 40;
-
         this.buttonLeft = this.add.image(buttonSize / 2 + 40, buttonY, 'arrow')
             .setDisplaySize(64, 64)
             .setAlpha(1).setInteractive().setScrollFactor(0)
@@ -136,7 +182,6 @@ export default class GameFinal extends Phaser.Scene {
         this.buttonLeft.on('pointerdown', () => this.leftPressed = true);
         this.buttonLeft.on('pointerup', () => this.leftPressed = false);
         this.buttonLeft.on('pointerout', () => this.leftPressed = false);
-
         this.buttonRight = this.add.image(this.cameras.main.width - buttonSize / 2 - 40, buttonY, 'arrow')
             .setDisplaySize(64, 64)
             .setAlpha(1).setInteractive().setScrollFactor(0);
@@ -147,8 +192,6 @@ export default class GameFinal extends Phaser.Scene {
 
     spustDokonceniHry() {
         this.hraDokoncena = true;
-
-        // Pokud objekty existují, nastav jejich stav (pouze v „herním“ režimu)
         if (this.bedna && this.bedna.body) {
             this.bedna.body.setImmovable(true);
             this.bedna.body.setVelocity(0, 0);
@@ -156,21 +199,17 @@ export default class GameFinal extends Phaser.Scene {
         if (this.chlapik && this.chlapik.body) {
             this.chlapik.setVelocityX(0);
         }
-
-        // Vždy zobraz finální text
         if (this.cilovaZonaData && this.cilovaZonaData.souradniceTextFinal) {
             this.cilovaZonaData.souradniceTextFinal
                 .setText(this.souradniceFinal)
                 .setAlpha(1)
                 .setVisible(true);
-
             this.tweens.add({
                 targets: this.cilovaZonaData.souradniceTextFinal,
                 alpha: 1,
                 duration: 800,
                 ease: "Power2"
             });
-
             if (this.sys.game.renderer.type === Phaser.WEBGL && this.cilovaZonaData.blurFx) {
                 this.cilovaZonaData.souradniceTextFinal.postFX.remove(this.cilovaZonaData.blurFx);
                 this.cilovaZonaData.blurFx = null;
@@ -179,9 +218,7 @@ export default class GameFinal extends Phaser.Scene {
         } else {
             // Pokud se načítá pouze finální souřadnice (preskocIntro), možná potřebuješ inicializovat text:
             if (!this.cilovaZonaData) {
-                // Vytvoř alespoň text a potřebný objekt!
                 const x = this.scale.width / 2;
-                const y = this.scale.height * 0.615; // orientačně do výšky bedny
                 this.cilovaZonaData = {
                     souradniceTextFinal: this.add.text(x, 300, this.souradniceFinal, {
                         color: "#33ff33",
@@ -196,9 +233,6 @@ export default class GameFinal extends Phaser.Scene {
             }
         }
     }
-
-
-
 
     tweenujText() {
         this.tweens.add({
@@ -224,12 +258,12 @@ export default class GameFinal extends Phaser.Scene {
                 this.bedna.setAlpha(1);
                 this.bedna.body.setVelocity(0, 0);
                 this.bedna.body.setImmovable(false);
-                this.background.x = this.backgroundDefaultX;
-                //this.cilovaZonaData.souradniceText.setText(this.souradniceFake).setVisible(false);
-                //this.hraDokoncena = false;
-                //this.teleportaceBezi = false;
-                this.cilovaZonaData.souradniceTextFake.setText(this.souradniceFake).setAlpha(1);
-                this.cilovaZonaData.souradniceTextFinal.setAlpha(0);
+                if (this.cilovaZonaData.souradniceTextFake) {
+                    this.cilovaZonaData.souradniceTextFake.setText(this.souradniceFake).setAlpha(1);
+                }
+                if (this.cilovaZonaData.souradniceTextFinal) {
+                    this.cilovaZonaData.souradniceTextFinal.setAlpha(0);
+                }
                 this.hraDokoncena = false;
                 this.teleportaceBezi = false;
             }
@@ -241,34 +275,25 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     update() {
+        if (this.preskocIntro) return; // Minimalistický režim neprovádí update!
         const isWebGL = this.sys.game.renderer.type === Phaser.WEBGL;
-
-        // Výpočet vzdáleností a rychlosti pro vyhodnocení stavu
         const vzdalenostStredu = Math.abs(this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x);
-        const tolerance = 16; // můžeš upravit dle potřeb
+        const tolerance = 16;
         const velocityX = Math.abs(this.bedna.body.velocity.x);
-
-        // Fade-in efekt pro FAKE text (pouze pokud ještě není dokončeno)
         if (!this.hraDokoncena && this.cilovaZonaData.souradniceTextFake) {
             const vzdalenost = vzdalenostStredu;
             const pomer = Phaser.Math.Clamp(1 - vzdalenost / 200, 0, 1);
             this.cilovaZonaData.souradniceTextFake.setAlpha(pomer);
         }
-
-        // Přepnutí na FINÁLNÍ text při zastavení bedny ve zóně
         if (vzdalenostStredu <= tolerance && velocityX <= 5 && !this.hraDokoncena) {
             this.hraDokoncena = true;
             this.bedna.body.setImmovable(true);
             this.bedna.body.setVelocity(0, 0);
             this.chlapik.setVelocityX(0);
-
-            // Znič FAKE text (pokud existuje)
             if (this.cilovaZonaData.souradniceTextFake) {
                 this.cilovaZonaData.souradniceTextFake.destroy();
                 this.cilovaZonaData.souradniceTextFake = null;
             }
-
-            // Fade-in FINÁLNÍHO textu (pokud existuje)
             if (this.cilovaZonaData.souradniceTextFinal) {
                 this.tweens.add({
                     targets: this.cilovaZonaData.souradniceTextFinal,
@@ -276,25 +301,15 @@ export default class GameFinal extends Phaser.Scene {
                     duration: 800,
                     ease: 'Power2'
                 });
-                // Odstranění případného rozmazání na textu
                 if (isWebGL && this.cilovaZonaData.blurFx) {
                     this.cilovaZonaData.souradniceTextFinal.postFX.remove(this.cilovaZonaData.blurFx);
                     this.cilovaZonaData.blurFx = null;
                 }
             }
         }
-
-        // Vložen paralax efect
-        if (!this.hraDokoncena && this.background) {
-            const paralaxRatio = 0.15; // uprav si sílu efektu dle vkusu
-            this.background.x -= this.chlapik.body.velocity.x * paralaxRatio * this.game.loop.delta / 1000;
-        }
-
-        // Ovládání chlapíka
         const jeKolizeSBednou = Phaser.Geom.Intersects.RectangleToRectangle(
             this.chlapik.getBounds(), this.bedna.getBounds()
         );
-
         if (this.cursors.left.isDown || this.leftPressed) {
             this.chlapik.setVelocityX(-70);
             this.chlapikAnimace.setFlipX(true);
@@ -307,20 +322,15 @@ export default class GameFinal extends Phaser.Scene {
             this.chlapik.setVelocityX(0);
             this.chlapikAnimace.play('stoji', true);
         }
-
-        // Stopky (časovač)
         if (this.stopkyBezi) {
             this.runningTime = (this.time.now - this.startTime) / 1000;
             this.stopkyText.setText(this.formatCas(this.runningTime));
         }
-
-        // Pokud bedna přejede cílovou zónu doprava (trestná teleportace zpět)
         const vzdalenostZaZonou = this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x;
         if (!this.hraDokoncena && vzdalenostZaZonou > 200 && !this.teleportaceBezi) {
             this.spustTeleportaci();
         }
     }
-
 
     formatCas(cas) {
         const min = Math.floor(cas / 60);

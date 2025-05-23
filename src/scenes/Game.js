@@ -1,4 +1,5 @@
 'use strict'
+import { BLUE_BUTTON_STYLE } from "../objects/buttons";
 
 export default class Game extends Phaser.Scene {
     constructor() {
@@ -23,7 +24,7 @@ export default class Game extends Phaser.Scene {
 
     create() {
         const { width, height } = this.scale;
-        localStorage.setItem('cilSplnen', '1'); // PRO LADĚNÍ - po dokončení zakomentuj nebo smaž
+        //localStorage.setItem('cilSplnen', '1'); // PRO LADĚNÍ - po dokončení zakomentuj nebo smaž
         //localStorage.removeItem('cilSplnen');
         //dočasné vypnutí scény
         //this.scene.stop();
@@ -86,6 +87,7 @@ export default class Game extends Phaser.Scene {
      */
     showStartBubble(callback, splneno = false, hratznovuCallback = null) {
         const { width, height } = this.scale;
+        let bubbleClosed = false;
 
         const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 220, 0xffffff, 0.6)
             .setOrigin(0.5)
@@ -126,71 +128,77 @@ export default class Game extends Phaser.Scene {
                 createButtons(); // Tlačítka se vytvoří hned po dopsání textu!
             }
         };
+
         revealText();
 
+        // Zavírací helper (ochrana před vícenásobným kliknutím)
+        const closeBubble = () => {
+            if (bubbleClosed) return;
+            bubbleClosed = true;
+            bubbleBg.destroy();
+            bubbleText.destroy();
+            if (btn1) btn1.destroy();
+            if (btn2) btn2.destroy();
+        };
 
         // Vytvoření tlačítek až po dopsání textu
+        let btn1, btn2;
         const createButtons = () => {
-            // Primární tlačítko
-            const btn1 = this.add.text(width / 2 - (splneno ? 100 : 0), height / 2 + 60, btn1Label, {
-                fontSize: 24, color: "#2ecc40", backgroundColor: "#eee", padding: { x: 16, y: 5 }
-            })
+            btn1 = this.add.text(width / 2 - (splneno ? 100 : 0), height / 2 + 60, btn1Label, BLUE_BUTTON_STYLE)
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true })
                 .setDepth(12);
 
-            let btn2 = null;
             if (splneno) {
-                btn2 = this.add.text(width / 2 + 100, height / 2 + 60, btn2Label, {
-                    fontSize: 24, color: "#0074d9", backgroundColor: "#eee", padding: { x: 16, y: 5 }
-                })
+                btn2 = this.add.text(width / 2 + 100, height / 2 + 60, btn2Label, BLUE_BUTTON_STYLE)
                     .setOrigin(0.5)
                     .setInteractive({ useHandCursor: true })
                     .setDepth(12);
             }
 
-            // Akce tlačítek
-            btn1.on('pointerdown', () => {
-                bubbleBg.destroy();
-                bubbleText.destroy();
-                btn1.destroy();
-                if (btn2) btn2.destroy();
+            let clickGuard = false;
+            const handleClick = (whichBtn) => {
+                if (clickGuard) return;
                 if (splneno) {
-                    this.scene.start('GameFinal', { preskocIntro: true });
-                } else if (callback) {
-                    callback();
-                }
-            });
-
-            if (btn2) {
-                btn2.on('pointerdown', () => {
-                    bubbleBg.destroy();
-                    bubbleText.destroy();
-                    btn1.destroy();
-                    btn2.destroy();
-                    if (hratznovuCallback) {
-                        hratznovuCallback();
+                    if (whichBtn === 1) {
+                        if (btn1 && btn1.disableInteractive) btn1.disableInteractive();
+                        if (btn2 && btn2.disableInteractive) btn2.disableInteractive();
+                        closeBubble();
+                        this.scene.start('GameFinal', { preskocIntro: true });
+                        clickGuard = true;
+                    } else if (hratznovuCallback) {
+                        if (btn2 && btn2.disableInteractive) btn2.disableInteractive();
+                        if (window.confirm("Chcete opravdu začít hru znovu? ...")) {
+                            if (btn1 && btn1.disableInteractive) btn1.disableInteractive();
+                            if (btn2 && btn2.disableInteractive) btn2.disableInteractive();
+                            closeBubble();
+                            localStorage.removeItem('cilSplnen');
+                            hratznovuCallback();
+                            clickGuard = true;
+                        }
+                        // Jinak nic!
                     }
-                });
-            }
+                } else if (callback) {
+                    if (btn1 && btn1.disableInteractive) btn1.disableInteractive();
+                    closeBubble();
+                    callback();
+                    clickGuard = true;
+                }
+            };
+
+            btn1.on('pointerdown', () => handleClick(1));
+            if (btn2) btn2.on('pointerdown', () => handleClick(2));
         };
 
         // Zavření/urychlení typewriter efektu
-        this.input.once('pointerdown', () => {
-            if (charIndex <= fullText.length) {
-                charIndex = fullText.length + 1;
-                bubbleText.setText(fullText);
-                // Po dopsání textu vytvoř tlačítka
-                createButtons();
-            } else {
-                // Pokud už je vše dopsané, tlačítka už jsou dostupná
-            }
-        });
-
-        // Pokud nechceš čekat na klik, můžeš vytvořit tlačítka automaticky po dopsání:
-        // this.time.delayedCall(revealSpeed * (fullText.length + 1), createButtons, [], this);
+        // this.input.once('pointerdown', () => {
+        //     if (charIndex <= fullText.length) {
+        //         charIndex = fullText.length + 1;
+        //         bubbleText.setText(fullText);
+        //         createButtons(); // už se provede jen jednou!
+        //     }
+        // });
     }
-
 
     spawnCards(values) {
         const { width, height } = this.scale;
@@ -246,6 +254,7 @@ export default class Game extends Phaser.Scene {
     endGame(message) {
         this.gameOver = true;
         if (this.heartTimer) this.heartTimer.destroy();
+        localStorage.removeItem('cilSplnen'); // vždy smaž, ať je čisto
 
         const text = this.add.text(this.scale.width / 2, this.scale.height / 2, message,
             { align: 'center', fontSize: 40, color: '#8c7ae6', fontStyle: 'bold' })
