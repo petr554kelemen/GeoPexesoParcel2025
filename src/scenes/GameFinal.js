@@ -67,6 +67,16 @@ export default class GameFinal extends Phaser.Scene {
             this.background = this.add.image(500, 390, "backgroundGame");
             this.background.setScale(0.878, 0.962);
             this.backgroundDefaultX = this.background.x;
+
+            // Pokud už nemáš někde v create():
+            this.background = this.add.tileSprite(
+                this.scale.width / 2,
+                this.scale.height / 2,
+                this.scale.width,
+                this.scale.height,
+                'backgroundGame'
+            );
+            this.background.setDepth(0);
         }
     }
 
@@ -118,7 +128,7 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     initChlapik() {
-        this.chlapikAnimace = new ChlapikAnimace(this, 50, this.posChlapikY, 'stoji');
+        this.chlapikAnimace = new ChlapikAnimace(this, 50, this.posChlapikY + 20, 'stoji');
         this.chlapik = this.chlapikAnimace.sprite;
         this.chlapik.body.setCollideWorldBounds(true);
         this.chlapik.body.setBounce(0.1);
@@ -130,25 +140,25 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     initBedna() {
-        this.bedna = this.physics.add.sprite(this.chlapik.x + 100, this.posBednaY, 'pictureBedna');
+        this.bedna = this.physics.add.sprite(this.chlapik.x + 100, this.posBednaY + 20, 'pictureBedna');
         this.bedna.setScale(0.6);
         this.bedna.body.setCollideWorldBounds(true);
         this.bedna.body.setBounce(0.05);
         this.bedna.body.setMass(5);
         this.bedna.body.setDrag(this.vychoziTreniBedny);
-        this.bedna.body.setSize(96, 96);
+        this.bedna.body.setSize(48, 48);
         this.bedna.setDepth(99);
         this.physics.add.collider(this.chlapik, this.bedna, null, this.muzeKolizovat, this);
     }
 
     initCilovaZona() {
         const x = this.scale.width / 2;
-        const y = this.bedna.body.center.y;
+        const y = this.bedna.body.center.y + 20;
         this.cilovaZonaData = {
             xStred: x,
             yStred: y,
             cervenaZonaObjekt: this.add.rectangle(x, y, 180, 80, 0xff0000).setOrigin(0.5).setAlpha(0.15),
-            zelenaZonaObjekt: this.add.rectangle(x, y, 80, 80, 0x00ff00).setOrigin(0.5).setAlpha(0.4),
+            zelenaZonaObjekt: this.add.rectangle(x, y, 40, 40, 0x00ff00).setOrigin(0.5).setAlpha(0.4),
             souradniceTextFake: this.add.text(this.scale.width / 2, 300, this.souradniceFake, {
                 color: "#cc2d2dff",
                 fontFamily: "DynaPuff, Arial, sans-serif",
@@ -192,6 +202,8 @@ export default class GameFinal extends Phaser.Scene {
 
     spustDokonceniHry() {
         this.hraDokoncena = true;
+        localStorage.setItem('cilSplnen', '1');
+        
         if (this.bedna && this.bedna.body) {
             this.bedna.body.setImmovable(true);
             this.bedna.body.setVelocity(0, 0);
@@ -252,6 +264,7 @@ export default class GameFinal extends Phaser.Scene {
             alpha: 0,
             duration: 600,
             onComplete: () => {
+                this.background.tilePositionX = 0;
                 this.chlapik.setPosition(50, this.posChlapikY);
                 this.bedna.setPosition(this.chlapik.x + 100, this.posBednaY);
                 this.chlapik.setAlpha(1);
@@ -330,6 +343,13 @@ export default class GameFinal extends Phaser.Scene {
         if (!this.hraDokoncena && vzdalenostZaZonou > 200 && !this.teleportaceBezi) {
             this.spustTeleportaci();
         }
+
+        if (this.chlapik && this.chlapik.body && !this.hraDokoncena) {
+            if (this.chlapik.body.velocity.x !== 0) {
+                this.background.tilePositionX -= (this.chlapik.body.velocity.x * 0.003) * (-1);
+            }
+        }
+
     }
 
     formatCas(cas) {
