@@ -4,7 +4,7 @@ export default class Boot extends Scene {
     constructor() {
         super('Boot');
     }
-    
+
     preload() {
         //  The Boot Scene is typically used to load in any assets you require for your Preloader, such as a game logo or background.
         //  The smaller the file size of the assets, the better, as the Boot Scene itself has no preloader.
@@ -23,7 +23,7 @@ export default class Boot extends Scene {
                 this.scene.start('Preloader'); // I v případě neúspěchu pokračujte (s výchozími fonty)
             }
         });
-        
+
         this.load.image('background', 'assets/bg.png');
 
         this.load.image("pictureChlapik", "assets/animace/Clovicek-stoji-jde-tlaci.png"); //spritesheet pro animace hry
@@ -37,6 +37,12 @@ export default class Boot extends Scene {
         this.load.image('heart', 'assets/images/heart-icon-2.png');
 
         this.load.image('arrow', 'assets/images/arrow.png'); //šipka pro tlačítka
+
+        //this.load.image("BednaImg",'assets/BednaSpritesheet.png');
+        this.load.spritesheet("bedna", "assets/BednaSpritesheet.png", {
+            frameWidth: 128,
+            frameHeight: 118
+        });
     }
 
     create() {

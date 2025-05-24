@@ -33,7 +33,7 @@
  * Výstup: Zobrazení souřadnic / dokončení hry / možnost restartu
  */
 
-window.DEBUG_MODE = true;
+window.DEBUG_MODE = false;
 
 import Phaser from 'phaser';
 import Napoveda from './UI/napoveda.js';
@@ -128,7 +128,7 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     initChlapik() {
-        this.chlapikAnimace = new ChlapikAnimace(this, 50, this.posChlapikY + 20, 'stoji');
+        this.chlapikAnimace = new ChlapikAnimace(this, 50, this.posChlapikY + 40, 'stoji');
         this.chlapik = this.chlapikAnimace.sprite;
         this.chlapik.body.setCollideWorldBounds(true);
         this.chlapik.body.setBounce(0.1);
@@ -140,7 +140,7 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     initBedna() {
-        this.bedna = this.physics.add.sprite(this.chlapik.x + 100, this.posBednaY + 20, 'pictureBedna');
+        this.bedna = this.physics.add.sprite(this.chlapik.x + 100, this.posBednaY + 40, 'bedna', 0);
         this.bedna.setScale(0.6);
         this.bedna.body.setCollideWorldBounds(true);
         this.bedna.body.setBounce(0.05);
@@ -153,7 +153,7 @@ export default class GameFinal extends Phaser.Scene {
 
     initCilovaZona() {
         const x = this.scale.width / 2;
-        const y = this.bedna.body.center.y + 20;
+        const y = this.bedna.body.center.y + 40;
         this.cilovaZonaData = {
             xStred: x,
             yStred: y,
@@ -203,10 +203,11 @@ export default class GameFinal extends Phaser.Scene {
     spustDokonceniHry() {
         this.hraDokoncena = true;
         localStorage.setItem('cilSplnen', '1');
-        
+
         if (this.bedna && this.bedna.body) {
             this.bedna.body.setImmovable(true);
             this.bedna.body.setVelocity(0, 0);
+            this.bedna.setFrame(1, true, true);
         }
         if (this.chlapik && this.chlapik.body) {
             this.chlapik.setVelocityX(0);
@@ -299,7 +300,10 @@ export default class GameFinal extends Phaser.Scene {
             this.cilovaZonaData.souradniceTextFake.setAlpha(pomer);
         }
         if (vzdalenostStredu <= tolerance && velocityX <= 5 && !this.hraDokoncena) {
-            this.hraDokoncena = true;
+
+            if (vzdalenostStredu <= tolerance && velocityX <= 5 && !this.hraDokoncena) {
+                this.spustDokonceniHry();
+            }
             this.bedna.body.setImmovable(true);
             this.bedna.body.setVelocity(0, 0);
             this.chlapik.setVelocityX(0);

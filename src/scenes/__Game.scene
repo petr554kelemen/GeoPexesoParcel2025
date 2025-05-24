@@ -23,8 +23,8 @@
             "texture": {
                 "key": "backgroundGame"
             },
-            "x": 500,
-            "y": 390,
+            "x": 527,
+            "y": 394,
             "scaleX": 0.8784867183713885,
             "scaleY": 0.9624751673844308,
             "alpha": 0.8,
@@ -34,34 +34,11 @@
             "alphaBottomRight": 0.8
         },
         {
-            "type": "Image",
-            "id": "4324a75c-bb09-4917-b83c-5404d1aa22fe",
-            "label": "pic100",
-            "texture": {
-                "key": "Pic10",
-                "frame": 0
-            },
-            "x": 355,
-            "y": 503,
-            "originX": 1,
-            "originY": 1
-        },
-        {
-            "type": "Sprite",
-            "id": "63765704-3e1d-40d9-9830-6743b2c9dc8c",
-            "label": "sprite_1",
-            "texture": {},
-            "x": 361,
-            "y": 501,
-            "originX": 0,
-            "originY": 1
-        },
-        {
             "type": "Text",
             "id": "50d55874-6dcd-4066-a784-eb01d490b41d",
             "label": "text_1",
-            "x": 228,
-            "y": 285,
+            "x": 299,
+            "y": 287,
             "originY": 1,
             "alphaTopRight": 0.84,
             "alphaBottomLeft": 0.81,
@@ -77,6 +54,19 @@
             "shadow.fill": true,
             "shadow.color": "#060606ff",
             "shadow.blur": 5
+        },
+        {
+            "type": "ArcadeImage",
+            "id": "d120035f-b09d-49f9-b4fa-0df0bf01ff2c",
+            "label": "arcadeimage_1",
+            "texture": {
+                "key": "BednaSpritesheet",
+                "frame": 0
+            },
+            "x": 579,
+            "y": 483,
+            "body.width": 128,
+            "body.height": 118
         }
     ],
     "plainObjects": [
