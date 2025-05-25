@@ -24,25 +24,25 @@ export default class Boot extends Scene {
             }
         });
 
-        this.load.image('background', 'assets/bg.png');
+        // this.load.image('background', 'assets/bg.png');
 
-        this.load.image("pictureChlapik", "assets/animace/Clovicek-stoji-jde-tlaci.png"); //spritesheet pro animace hry
-        this.load.image("pictureBedna", "assets/Bedna.png"); //spritesheet bedny
-        this.load.atlas('chlapik_animace', 'assets/animace/clovicek-stoji-jde-tlaci.png', 'assets/animace/clovicek-stoji-jde-tlaci.json');
+        // this.load.image("pictureChlapik", "assets/animace/Clovicek-stoji-jde-tlaci.png"); //spritesheet pro animace hry
+        // this.load.image("pictureBedna", "assets/Bedna.png"); //spritesheet bedny
+        // this.load.atlas('chlapik_animace', 'assets/animace/clovicek-stoji-jde-tlaci.png', 'assets/animace/clovicek-stoji-jde-tlaci.json');
 
-        this.load.plugin('rexflipplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexflipplugin.min.js', true);
-        this.load.plugin('rexlifetimeplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexlifetimeplugin.min.js', true);
-        this.load.atlas('pexeso', "assets/images/atlas_pexeso.png", "assets/images/atlas_pexeso_atlas.json");
+        // this.load.plugin('rexflipplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexflipplugin.min.js', true);
+        // this.load.plugin('rexlifetimeplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexlifetimeplugin.min.js', true);
+        // this.load.atlas('pexeso', "assets/images/atlas_pexeso.png", "assets/images/atlas_pexeso_atlas.json");
 
-        this.load.image('heart', 'assets/images/heart-icon-2.png');
+        // this.load.image('heart', 'assets/images/heart-icon-2.png');
 
-        this.load.image('arrow', 'assets/images/arrow.png'); //šipka pro tlačítka
+        // this.load.image('arrow', 'assets/images/arrow.png'); //šipka pro tlačítka
 
-        //this.load.image("BednaImg",'assets/BednaSpritesheet.png');
-        this.load.spritesheet("bedna", "assets/BednaSpritesheet.png", {
-            frameWidth: 128,
-            frameHeight: 118
-        });
+        // //this.load.image("BednaImg",'assets/BednaSpritesheet.png');
+        // this.load.spritesheet("bedna", "assets/BednaSpritesheet.png", {
+        //     frameWidth: 128,
+        //     frameHeight: 118
+        // });
     }
 
     create() {

@@ -1,97 +1,96 @@
-// You can write more code here
+// // You can write more code here
 
 
-/* START OF COMPILED CODE */
+// /* START OF COMPILED CODE */
 
-/* START-USER-IMPORTS */
-/* END-USER-IMPORTS */
+// /* START-USER-IMPORTS */
+// /* END-USER-IMPORTS */
 
-export default class Preloader extends Phaser.Scene {
+// export default class Preloader extends Phaser.Scene {
 
-	constructor() {
-		super("Preloader");
+// 	constructor() {
+// 		super("Preloader");
 
-		/* START-USER-CTR-CODE */
-		// Write your code here.
-		/* END-USER-CTR-CODE */
-	}
+// 		/* START-USER-CTR-CODE */
+// 		// Write your code here.
+// 		/* END-USER-CTR-CODE */
+// 	}
 
-	/** @returns {void} */
-	editorCreate() {
+// 	/** @returns {void} */
+// 	editorCreate() {
 
-		// background
-		this.add.image(512, 384, "backgroundGame");
+// 		// background
+// 		this.add.image(512, 384, "backgroundGame");
 
-		// progressBar
-		const progressBar = this.add.rectangle(511, 319, 468, 32);
-		progressBar.isFilled = true;
-		progressBar.fillColor = 14737632;
-		progressBar.isStroked = true;
+// 		// progressBar
+// 		const progressBar = this.add.rectangle(511, 319, 468, 32);
+// 		progressBar.isFilled = true;
+// 		progressBar.fillColor = 14737632;
+// 		progressBar.isStroked = true;
 
-		// logo
-		const logo = this.add.image(520, 227, "logo");
-		logo.alpha = 0.5;
-		logo.alphaTopLeft = 0.5;
-		logo.alphaTopRight = 0.5;
-		logo.alphaBottomLeft = 0.5;
-		logo.alphaBottomRight = 0.5;
+// 		// logo
+// 		const logo = this.add.image(520, 227, "logo");
+// 		logo.alpha = 0.5;
+// 		logo.alphaTopLeft = 0.5;
+// 		logo.alphaTopRight = 0.5;
+// 		logo.alphaBottomLeft = 0.5;
+// 		logo.alphaBottomRight = 0.5;
 
-		this.progressBar = progressBar;
+// 		this.progressBar = progressBar;
 
-		this.events.emit("scene-awake");
-	}
+// 		this.events.emit("scene-awake");
+// 	}
 
-	/** @type {Phaser.GameObjects.Rectangle} */
-	progressBar;
+// 	/** @type {Phaser.GameObjects.Rectangle} */
+// 	progressBar;
 
-	/* START-USER-CODE */
+// 	/* START-USER-CODE */
 
-	// Write your code here
-    init ()
-    {
-        this.editorCreate();
+// 	// Write your code here
+//     init ()
+//     {
+//         this.editorCreate();
 
-        //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
-        const bar = this.add.rectangle(this.progressBar.x - this.progressBar.width / 2 + 4, this.progressBar.y, 4, 28, 0xffffff);
+//         //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
+//         const bar = this.add.rectangle(this.progressBar.x - this.progressBar.width / 2 + 4, this.progressBar.y, 4, 28, 0xffffff);
 
-        //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
-        this.load.on('progress', (progress) => {
+//         //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
+//         this.load.on('progress', (progress) => {
 
-            //  Update the progress bar (our bar is 464px wide, so 100% = 464px)
-            bar.width = 4 + (460 * progress);
+//             //  Update the progress bar (our bar is 464px wide, so 100% = 464px)
+//             bar.width = 4 + (460 * progress);
 
-        });
+//         });
 
 
-    }
+//     }
 
-    preload ()
-    {
-        // Use the 'pack' file to load in any assets you need for this scene
-        this.load.pack('preload', 'assets/preload-asset-pack.json');
-    }
+//     preload ()
+//     {
+//         // Use the 'pack' file to load in any assets you need for this scene
+//         this.load.pack('preload', 'assets/preload-asset-pack.json');
+//     }
 
-    create ()
-    {
-        //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
-        //  For example, you can define global animations here, so we can use them in other scenes.
-		//this.pathBuilder = this.plugins.get('PathBuilderPlugin');
-        //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-        this.scene.start('Game');
-    }
-        /* END-USER-CODE */
-}
+//     create ()
+//     {
+//         //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
+//         //  For example, you can define global animations here, so we can use them in other scenes.
+// 		//this.pathBuilder = this.plugins.get('PathBuilderPlugin');
+//         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
+//         this.scene.start('Game');
+//     }
+//         /* END-USER-CODE */
+// }
 
 /* END OF COMPILED CODE */
 
 // You can write more code here
-/**
- * Návrh na preload od AI
+// Návrh na preload od AI
  
-* // PreloadScene.js
-export default class PreloadScene extends Phaser.Scene {
+// Preloader.js
+export default class Preloader extends Phaser.Scene {
   constructor() {
-    super({ key: 'PreloadScene' });
+    super({ key: 'Preloader' });
   }
 
   preload() {
@@ -132,19 +131,54 @@ export default class PreloadScene extends Phaser.Scene {
 
     // 2) TU NAHRÁVÁŠ SVOJE ASSETY
     // např.:
-    this.load.image('tiles', 'assets/tiles.png');
-    this.load.audio('click', 'assets/click.mp3');
-    this.load.json('level1', 'assets/level1.json');
+    //this.load.image('tiles', 'assets/tiles.png');
+    //this.load.audio('click', 'assets/click.mp3');
+    //this.load.json('level1', 'assets/level1.json');
     // ...další obrázky, zvuky, JSONy atd.
+    this.load.pack('preload', 'assets/preload-asset-pack.json');
+    // WebFont.load({
+    //         google: {
+    //             families: ['Playpen Sans Arabic: 400', "DynaPuff: 600"] // Seznam vašich Google Fonts
+    //         },
+    //         active: () => {
+    //             //console.log('Google Fonts načteny.');
+    //             this.scene.start('Preloader'); // Spusťte další scénu až po načtení fontů
+    //         },
+    //         inactive: () => {
+    //             console.warn('Google Fonts se nepodařilo načíst. Používám výchozí fonty.');
+    //             this.scene.start('Preloader'); // I v případě neúspěchu pokračujte (s výchozími fonty)
+    //         }
+    //     });
 
-    // 3) Zajistit minimální zobrazení scény (např. 500 ms)
-    const minDisplayTime = 500;
+        this.load.image('background', 'assets/bg.png');
+
+        this.load.image("pictureChlapik", "assets/animace/Clovicek-stoji-jde-tlaci.png"); //spritesheet pro animace hry
+        this.load.image("pictureBedna", "assets/Bedna.png"); //spritesheet bedny
+        this.load.atlas('chlapik_animace', 'assets/animace/clovicek-stoji-jde-tlaci.png', 'assets/animace/clovicek-stoji-jde-tlaci.json');
+
+        this.load.plugin('rexflipplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexflipplugin.min.js', true);
+        this.load.plugin('rexlifetimeplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexlifetimeplugin.min.js', true);
+        this.load.atlas('pexeso', "assets/images/atlas_pexeso.png", "assets/images/atlas_pexeso_atlas.json");
+
+        this.load.image('heart', 'assets/images/heart-icon-2.png');
+
+        this.load.image('arrow', 'assets/images/arrow.png'); //šipka pro tlačítka
+
+        //this.load.image("BednaImg",'assets/BednaSpritesheet.png');
+        this.load.spritesheet("bedna", "assets/BednaSpritesheet.png", {
+            frameWidth: 128,
+            frameHeight: 118
+        });
+
+    // 3) Zajistit minimální zobrazení scény (např. 1500 ms)
+    const minDisplayTime = 1500;
     const startTime = this.time.now;
     this.load.on('complete', () => {
       const elapsed = this.time.now - startTime;
       const delay = Math.max(0, minDisplayTime - elapsed);
       this.time.delayedCall(delay, () => {
-        this.scene.start('PlayScene');
+        //this.scene.start('PlayScene');
+        this.scene.start('Game');
       });
     });
   }
@@ -153,5 +187,3 @@ export default class PreloadScene extends Phaser.Scene {
     // nic dalšího už nenačítáme – přechod proběhne v load.on('complete')
   }
 }
-
- */
