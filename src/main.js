@@ -1,7 +1,7 @@
 import Boot from './scenes/Boot';
 import Game from './scenes/Game';
 import GameFinal from './scenes/GameFinal';
-import GameOver from './scenes/GameOver';
+//import GameOver from './scenes/GameOver';
 import MainMenu from './scenes/MainMenu';
 import Preloader from './scenes/Preloader';
 
@@ -23,8 +23,7 @@ const config = {
         Preloader,
         MainMenu,
         Game,
-        GameFinal,
-        GameOver
+        GameFinal
     ],
     physics: {
         default: 'arcade',

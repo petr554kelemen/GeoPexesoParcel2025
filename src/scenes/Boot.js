@@ -15,7 +15,7 @@ export default class Boot extends Scene {
                 families: ['Playpen Sans Arabic: 400', "DynaPuff: 600"] // Seznam vašich Google Fonts
             },
             active: () => {
-                console.log('Google Fonts načteny.');
+                //console.log('Google Fonts načteny.');
                 this.scene.start('Preloader'); // Spusťte další scénu až po načtení fontů
             },
             inactive: () => {
@@ -46,6 +46,6 @@ export default class Boot extends Scene {
     }
 
     create() {
-        this.scene.start('Preloader');
+        //this.scene.start('Preloader');
     }
 }

@@ -85,3 +85,73 @@ export default class Preloader extends Phaser.Scene {
 /* END OF COMPILED CODE */
 
 // You can write more code here
+/**
+ * Návrh na preload od AI
+ 
+* // PreloadScene.js
+export default class PreloadScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'PreloadScene' });
+  }
+
+  preload() {
+    const { width, height } = this.cameras.main;
+
+    // 1) Pozadí a rám progress baru
+    const barWidth = width * 0.6;
+    const barHeight = 30;
+    const barX = (width - barWidth) / 2;
+    const barY = height / 2;
+
+    // šedé pozadí
+    const bg = this.add.graphics();
+    bg.fillStyle(0x222222, 0.8);
+    bg.fillRect(barX, barY, barWidth, barHeight);
+
+    // barevný progress bar
+    const bar = this.add.graphics();
+
+    // text procent
+    const percentText = this.add.text(width/2, barY - 20, '0 %', {
+      fontSize: '20px',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+
+    // event, který se volá průběžně
+    this.load.on('progress', (value) => {
+      bar.clear();
+      bar.fillStyle(0xf0ad4e, 1);
+      bar.fillRect(barX, barY, barWidth * value, barHeight);
+      percentText.setText(parseInt(value * 100) + ' %');
+    });
+
+    // event po dokončení všech loadů
+    this.load.on('complete', () => {
+      percentText.setText('Hotovo!');
+    });
+
+    // 2) TU NAHRÁVÁŠ SVOJE ASSETY
+    // např.:
+    this.load.image('tiles', 'assets/tiles.png');
+    this.load.audio('click', 'assets/click.mp3');
+    this.load.json('level1', 'assets/level1.json');
+    // ...další obrázky, zvuky, JSONy atd.
+
+    // 3) Zajistit minimální zobrazení scény (např. 500 ms)
+    const minDisplayTime = 500;
+    const startTime = this.time.now;
+    this.load.on('complete', () => {
+      const elapsed = this.time.now - startTime;
+      const delay = Math.max(0, minDisplayTime - elapsed);
+      this.time.delayedCall(delay, () => {
+        this.scene.start('PlayScene');
+      });
+    });
+  }
+
+  create() {
+    // nic dalšího už nenačítáme – přechod proběhne v load.on('complete')
+  }
+}
+
+ */
