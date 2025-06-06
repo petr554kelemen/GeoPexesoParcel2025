@@ -84,10 +84,46 @@ export default class Game extends Phaser.Scene {
      * @param {Function} callback - volá se při kliknutí na "Pokračovat"/"Hrát znovu"
      * @param {boolean} splneno - true pokud hráč už má splněno
      * @param {Function} hratznovuCallback - volá se při kliknutí na "Hrát znovu" (pouze při splněno)
-     */
+     *
+     * TODO: text v bublině localizovat podle jazyka prohlížeče
+     * pokud je cs nebo sk, zobrazit češtinu, pokud pl, tak polštinu, jinak angličtinu
+    */
     showStartBubble(callback, splneno = false, hratznovuCallback = null) {
         const { width, height } = this.scale;
         let bubbleClosed = false;
+
+        // Detekce jazyka
+        const lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+        let locale = 'en';
+        if (lang.startsWith('cs') || lang.startsWith('sk')) locale = 'cs';
+        else if (lang.startsWith('pl')) locale = 'pl';
+
+        // Lokalizované texty
+        const texts = {
+            cs: {
+                done: 'Máš již splněno!\nChceš hrát znovu, nebo jen zobrazit souřadnice?',
+                intro: 'Vítej ve hře!\n\nBude to boj s časem\nZa každých 18s ztratíš 1 život.',
+                btn1done: 'Souřadnice',
+                btn2done: 'Hrát',
+                btn1intro: 'Pokračovat'
+            },
+            pl: {
+                done: 'Już ukończone!\nChcesz zagrać ponownie czy tylko zobaczyć współrzędne?',
+                intro: 'Witamy w grze!\n\nTo będzie walka z czasem\nCo 18s tracisz 1 życie.',
+                btn1done: 'Współrzędne',
+                btn2done: 'Graj',
+                btn1intro: 'Kontynuuj'
+            },
+            en: {
+                done: 'You have already completed it!\nDo you want to play again or just show the coordinates?',
+                intro: 'Welcome to the game!\n\nIt will be a race against time\nEvery 18s you lose 1 life.',
+                btn1done: 'Coordinates',
+                btn2done: 'Play',
+                btn1intro: 'Continue'
+            }
+        };
+
+        const t = texts[locale];
 
         const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 220, 0xffffff, 0.6)
             .setOrigin(0.5)
@@ -96,12 +132,12 @@ export default class Game extends Phaser.Scene {
 
         let fullText, btn1Label, btn2Label;
         if (splneno) {
-            fullText = 'Máš již splněno!\nChceš hrát znovu, nebo jen zobrazit souřadnice?';
-            btn1Label = "Souřadnice";
-            btn2Label = "Hrát";
+            fullText = t.done;
+            btn1Label = t.btn1done;
+            btn2Label = t.btn2done;
         } else {
-            fullText = 'Vítej ve hře!\n\nBude to boj s časem\nZa každých 18s ztratíš 1 život.';
-            btn1Label = "Pokračovat";
+            fullText = t.intro;
+            btn1Label = t.btn1intro;
             btn2Label = null;
         }
 
