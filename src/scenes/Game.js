@@ -1,5 +1,6 @@
 'use strict'
 import { BLUE_BUTTON_STYLE } from "../objects/buttons";
+import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape"; // <-- přidat
 
 export default class Game extends Phaser.Scene {
     constructor() {
@@ -31,13 +32,16 @@ export default class Game extends Phaser.Scene {
         //this.scene.start("GameFinal");
         //return;
 
+        // Přidání fullscreen tlačítka a kontroly landscape (pouze Android)
+        addFullscreenAndLandscape(this, 'fullscreenIcon');
+
         // Pozadí
         const background = this.add.image(width / 2, height / 2, 'backgroundGame');
         background.setScale(width / 800 * 1.6, height / 600 * 1.25);
         background.preFX.addBlur(0, 4, 2, 2, 0xffffff, 4);
 
         // Text časovače (zatím skrytý)
-        this.casText = this.add.text(width - 150, 31, '').setVisible(false);
+        this.casText = this.add.text(width - 150, 81, '').setVisible(false);
 
         // Konstanty
         const TOTAL_TIME = 3 * 60 * 1000;
@@ -48,11 +52,11 @@ export default class Game extends Phaser.Scene {
         this.cards = this.add.group();
         this.hearts = this.add.group();
 
-        // Rozmístění srdíček
+        // Rozmístění srdíček - nyní vlevo nahoře
         const heartSpacing = 30;
-        let startX = width - 350;
+        let startX = 40; // <-- změna: začátek vlevo
         for (let i = 0; i < NUM_HEARTS; i++) {
-            this.hearts.add(this.add.sprite(startX + i * heartSpacing, 50, 'heart').setScale(0.35));
+            this.hearts.add(this.add.sprite(startX + i * heartSpacing, 50, 'heart').setScale(0.35)); // y=50 pro horní okraj
         }
 
         // Předdefinované hodnoty karet
@@ -85,21 +89,18 @@ export default class Game extends Phaser.Scene {
      * @param {boolean} splneno - true pokud hráč už má splněno
      * @param {Function} hratznovuCallback - volá se při kliknutí na "Hrát znovu" (pouze při splněno)
      *
-     * TODO: text v bublině localizovat podle jazyka prohlížeče
-     * pokud je cs nebo sk, zobrazit češtinu, pokud pl, tak polštinu, jinak angličtinu
+     * Lokalizuje text v bublině podle jazyka prohlížeče:
+     * pokud je cs nebo sk, zobrazí češtinu, pokud pl, tak polštinu, jinak angličtinu.
     */
-    showStartBubble(callback, splneno = false, hratznovuCallback = null) {
-        const { width, height } = this.scale;
-        let bubbleClosed = false;
-
-        // Detekce jazyka
+    getLocaleTexts() {
         const lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
-        let locale = 'en';
-        if (lang.startsWith('cs') || lang.startsWith('sk')) locale = 'cs';
-        else if (lang.startsWith('pl')) locale = 'pl';
+        if (lang.startsWith('cs') || lang.startsWith('sk')) return 'cs';
+        if (lang.startsWith('pl')) return 'pl';
+        return 'en';
+    }
 
-        // Lokalizované texty
-        const texts = {
+    getTextsByLocale(locale) {
+        return {
             cs: {
                 done: 'Máš již splněno!\nChceš hrát znovu, nebo jen zobrazit souřadnice?',
                 intro: 'Vítej ve hře!\n\nBude to boj s časem\nZa každých 18s ztratíš 1 život.',
@@ -121,14 +122,35 @@ export default class Game extends Phaser.Scene {
                 btn2done: 'Play',
                 btn1intro: 'Continue'
             }
-        };
+        }[locale];
+    }
 
-        const t = texts[locale];
-
-        const bubbleBg = this.add.rectangle(width / 2, height / 2, 500, 220, 0xffffff, 0.6)
+    createBubbleBackground(width, height) {
+        return this.add.rectangle(width / 2, height / 2, 500, 220, 0xffffff, 0.6)
             .setOrigin(0.5)
             .setStrokeStyle(4, 0x8c7ae6)
             .setDepth(10);
+    }
+
+    createBubbleText(width, height) {
+        return this.add.text(width / 2, height / 2 - 35, '', {
+            fontSize: 26,
+            fontFamily: 'Playpen Sans Arabic',
+            color: '#242424',
+            align: 'center',
+            wordWrap: { width: 440 }
+        })
+            .setOrigin(0.5)
+            .setDepth(11);
+    }
+
+    showStartBubble(callback, splneno = false, hratznovuCallback = null) {
+        const { width, height } = this.scale;
+        const locale = this.getLocaleTexts();
+        const t = this.getTextsByLocale(locale);
+
+        // 1. Vytvoření kontejneru
+        const bubbleContainer = this.add.container(0, 0);
 
         let fullText, btn1Label, btn2Label;
         if (splneno) {
@@ -141,99 +163,57 @@ export default class Game extends Phaser.Scene {
             btn2Label = null;
         }
 
-        const bubbleText = this.add.text(width / 2, height / 2 - 35, '', {
-            fontSize: 26,
-            fontFamily: 'Playpen Sans Arabic',
-            color: '#242424',
-            align: 'center',
-            wordWrap: { width: 440 }
-        })
-            .setOrigin(0.5)
-            .setDepth(11);
+        // 2. Přidání pozadí a textu do kontejneru
+        const bubbleBg = this.createBubbleBackground(width, height);
+        bubbleContainer.add(bubbleBg);
+
+        const bubbleText = this.createBubbleText(width, height);
+        bubbleContainer.add(bubbleText);
 
         let charIndex = 0;
-        const revealSpeed = 64; // ms mezi znaky
+        const revealSpeed = 64;
 
-        // Typewriter efekt
+        function handleClick() {
+            bubbleContainer.destroy(); // Zničí vše včetně tlačítek, textu i pozadí
+            if (splneno) {
+                if (arguments[0] === 1 && callback) callback();
+                else if (hratznovuCallback) hratznovuCallback();
+            } else if (callback) {
+                callback();
+            }
+        }
+
         const revealText = () => {
             if (charIndex <= fullText.length) {
                 bubbleText.setText(fullText.substr(0, charIndex));
                 charIndex++;
                 this.time.delayedCall(revealSpeed, revealText, [], this);
             } else {
-                createButtons(); // Tlačítka se vytvoří hned po dopsání textu!
+                createButtons();
             }
         };
 
-        revealText();
-
-        // Zavírací helper (ochrana před vícenásobným kliknutím)
-        const closeBubble = () => {
-            if (bubbleClosed) return;
-            bubbleClosed = true;
-            bubbleBg.destroy();
-            bubbleText.destroy();
-            if (btn1) btn1.destroy();
-            if (btn2) btn2.destroy();
-        };
-
-        // Vytvoření tlačítek až po dopsání textu
-        let btn1, btn2;
         const createButtons = () => {
-            btn1 = this.add.text(width / 2 - (splneno ? 100 : 0), height / 2 + 60, btn1Label, BLUE_BUTTON_STYLE)
+            let btn1 = this.add.text(width / 2 - (splneno ? 100 : 0), height / 2 + 60, btn1Label, BLUE_BUTTON_STYLE)
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true })
                 .setDepth(12);
+            bubbleContainer.add(btn1);
 
+            let btn2 = null;
             if (splneno) {
                 btn2 = this.add.text(width / 2 + 100, height / 2 + 60, btn2Label, BLUE_BUTTON_STYLE)
                     .setOrigin(0.5)
                     .setInteractive({ useHandCursor: true })
                     .setDepth(12);
+                bubbleContainer.add(btn2);
             }
-
-            let clickGuard = false;
-            const handleClick = (whichBtn) => {
-                if (clickGuard) return;
-                if (splneno) {
-                    if (whichBtn === 1) {
-                        if (btn1 && btn1.disableInteractive) btn1.disableInteractive();
-                        if (btn2 && btn2.disableInteractive) btn2.disableInteractive();
-                        closeBubble();
-                        this.scene.start('GameFinal', { preskocIntro: true });
-                        clickGuard = true;
-                    } else if (hratznovuCallback) {
-                        if (btn2 && btn2.disableInteractive) btn2.disableInteractive();
-                        if (window.confirm("Chcete opravdu začít hru znovu? ...")) {
-                            if (btn1 && btn1.disableInteractive) btn1.disableInteractive();
-                            if (btn2 && btn2.disableInteractive) btn2.disableInteractive();
-                            closeBubble();
-                            localStorage.removeItem('cilSplnen');
-                            hratznovuCallback();
-                            clickGuard = true;
-                        }
-                        // Jinak nic!
-                    }
-                } else if (callback) {
-                    if (btn1 && btn1.disableInteractive) btn1.disableInteractive();
-                    closeBubble();
-                    callback();
-                    clickGuard = true;
-                }
-            };
 
             btn1.on('pointerdown', () => handleClick(1));
             if (btn2) btn2.on('pointerdown', () => handleClick(2));
         };
 
-        // Zavření/urychlení typewriter efektu
-        // this.input.once('pointerdown', () => {
-        //     if (charIndex <= fullText.length) {
-        //         charIndex = fullText.length + 1;
-        //         bubbleText.setText(fullText);
-        //         createButtons(); // už se provede jen jednou!
-        //     }
-        // });
+        revealText();
     }
 
     spawnCards(values) {
@@ -292,7 +272,7 @@ export default class Game extends Phaser.Scene {
         if (this.heartTimer) this.heartTimer.destroy();
         localStorage.removeItem('cilSplnen'); // vždy smaž, ať je čisto
 
-        const text = this.add.text(this.scale.width / 2, this.scale.height / 2, message,
+        this.add.text(this.scale.width / 2, this.scale.height / 2, message,
             { align: 'center', fontSize: 40, color: '#8c7ae6', fontStyle: 'bold' })
             .setOrigin(0.5).setDepth(3).setInteractive();
 

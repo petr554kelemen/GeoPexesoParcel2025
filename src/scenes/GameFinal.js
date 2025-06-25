@@ -38,6 +38,7 @@ window.DEBUG_MODE = false;
 import Phaser from 'phaser';
 import Napoveda from './UI/napoveda.js';
 import ChlapikAnimace from '../objects/ChlapikAnimace.js';
+import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape"; // <-- přidat
 
 export default class GameFinal extends Phaser.Scene {
     constructor() {
@@ -55,10 +56,33 @@ export default class GameFinal extends Phaser.Scene {
         this.souradniceFake = `N 50°00.000\nE 017°00.000`;
         this.souradniceFinal = `N 50°05.111\nE 017°20.111`;
         this.souradniceZastupne = `N 50°XX.XXX\nE 017°XX.XXX`;
+        this.locale = null;
+        this.textsByLocale = null;
+    }
+
+    getLocaleTexts() {
+        const lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+        if (lang.startsWith('cs') || lang.startsWith('sk')) return 'cs';
+        if (lang.startsWith('pl')) return 'pl';
+        return 'en';
+    }
+
+    getTextsByLocale(locale) {
+        return {
+            cs: {
+                back: "↩️ Hrát znovu"
+            },
+            pl: {
+                back: "↩️ Zagraj ponownie"
+            },
+            en: {
+                back: "↩️ Play again"
+            }
+        }[locale];
     }
 
     init(data) {
-        this.preskocIntro = data && data.preskocIntro;
+        this.preskocIntro = data?.preskocIntro;
         if (!this.preskocIntro) {
             const { height, width } = this.scale.canvas;
             this.posBednaY = height * 0.615;
@@ -81,6 +105,9 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     create() {
+        this.locale = this.getLocaleTexts();
+        this.textsByLocale = this.getTextsByLocale(this.locale);
+
         // === MINIMALISTICKÝ REŽIM: Pouze souřadnice ===
         if (this.preskocIntro) {
             this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0xffffff, 0.98);
@@ -94,10 +121,15 @@ export default class GameFinal extends Phaser.Scene {
                 align: "center"
             }).setOrigin(0.5);
 
-            // Nepovinné tlačítko zpět/hrát znovu
-            const btn = this.add.text(this.scale.width / 2, this.scale.height / 2 + 120, "↩️ Hrát znovu", {
-                fontSize: 36, color: "#444", backgroundColor: "#fff", padding: { x: 24, y: 10 }
-            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            // Lokalizované tlačítko zpět/hrát znovu
+            const btn = this.add.text(
+                this.scale.width / 2,
+                this.scale.height / 2 + 120,
+                this.textsByLocale.back, // <-- lokalizovaný text
+                {
+                    fontSize: 36, color: "#444", backgroundColor: "#fff", padding: { x: 24, y: 10 }
+                }
+            ).setOrigin(0.5).setInteractive({ useHandCursor: true });
             btn.on('pointerdown', () => {
                 localStorage.removeItem('cilSplnen');
                 this.scene.start('Game');
@@ -114,6 +146,9 @@ export default class GameFinal extends Phaser.Scene {
         this.napoveda = new Napoveda(this, this.cilovaZonaData.zelenaZonaObjekt);
         this.startTime = this.time.now;
         this.stopkyBezi = true;
+
+        // Přidání fullscreen tlačítka a kontroly landscape (pouze Android)
+        addFullscreenAndLandscape(this, 'fullscreenIcon');
     }
 
     initStopky() {
@@ -204,15 +239,15 @@ export default class GameFinal extends Phaser.Scene {
         this.hraDokoncena = true;
         localStorage.setItem('cilSplnen', '1');
 
-        if (this.bedna && this.bedna.body) {
+        if (this.bedna?.body) {
             this.bedna.body.setImmovable(true);
             this.bedna.body.setVelocity(0, 0);
             this.bedna.setFrame(1, true, true);
         }
-        if (this.chlapik && this.chlapik.body) {
+        if (this.chlapik?.body) {
             this.chlapik.setVelocityX(0);
         }
-        if (this.cilovaZonaData && this.cilovaZonaData.souradniceTextFinal) {
+        if (this.cilovaZonaData?.souradniceTextFinal) {
             this.cilovaZonaData.souradniceTextFinal
                 .setText(this.souradniceFinal)
                 .setAlpha(1)
@@ -228,22 +263,21 @@ export default class GameFinal extends Phaser.Scene {
                 this.cilovaZonaData.blurFx = null;
             }
             this.cilovaZonaData.souradniceTextFinal.setShadow(0, 0, "#000", 0, false, false);
-        } else {
-            // Pokud se načítá pouze finální souřadnice (preskocIntro), možná potřebuješ inicializovat text:
-            if (!this.cilovaZonaData) {
-                const x = this.scale.width / 2;
-                this.cilovaZonaData = {
-                    souradniceTextFinal: this.add.text(x, 300, this.souradniceFinal, {
-                        color: "#33ff33",
-                        fontFamily: "DynaPuff, Arial, sans-serif",
-                        fontSize: "90px",
-                        stroke: "#1f1818ff",
-                        strokeThickness: 3,
-                        align: "center"
-                    }).setOrigin(0.5, 1).setAlpha(1),
-                    blurFx: null
-                };
-            }
+        }
+        // Pokud se načítá pouze finální souřadnice (preskocIntro), možná potřebuješ inicializovat text:
+        if (!this.cilovaZonaData) {
+            const x = this.scale.width / 2;
+            this.cilovaZonaData = {
+                souradniceTextFinal: this.add.text(x, 300, this.souradniceFinal, {
+                    color: "#33ff33",
+                    fontFamily: "DynaPuff, Arial, sans-serif",
+                    fontSize: "90px",
+                    stroke: "#1f1818ff",
+                    strokeThickness: 3,
+                    align: "center"
+                }).setOrigin(0.5, 1).setAlpha(1),
+                blurFx: null
+            };
         }
     }
 
@@ -294,36 +328,57 @@ export default class GameFinal extends Phaser.Scene {
         const vzdalenostStredu = Math.abs(this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x);
         const tolerance = 16;
         const velocityX = Math.abs(this.bedna.body.velocity.x);
+
+        this.updateSouradniceTextFake(vzdalenostStredu);
+
+        if (this.shouldCompleteGame(vzdalenostStredu, tolerance, velocityX)) {
+            this.handleGameCompletion(isWebGL);
+        }
+
+        this.handleMovement();
+
+        this.updateStopky();
+
+        this.checkTeleportation();
+
+        this.updateBackgroundScroll();
+    }
+
+    updateSouradniceTextFake(vzdalenostStredu) {
         if (!this.hraDokoncena && this.cilovaZonaData.souradniceTextFake) {
-            const vzdalenost = vzdalenostStredu;
-            const pomer = Phaser.Math.Clamp(1 - vzdalenost / 200, 0, 1);
+            const pomer = Phaser.Math.Clamp(1 - vzdalenostStredu / 200, 0, 1);
             this.cilovaZonaData.souradniceTextFake.setAlpha(pomer);
         }
-        if (vzdalenostStredu <= tolerance && velocityX <= 5 && !this.hraDokoncena) {
+    }
 
-            if (vzdalenostStredu <= tolerance && velocityX <= 5 && !this.hraDokoncena) {
-                this.spustDokonceniHry();
-            }
-            this.bedna.body.setImmovable(true);
-            this.bedna.body.setVelocity(0, 0);
-            this.chlapik.setVelocityX(0);
-            if (this.cilovaZonaData.souradniceTextFake) {
-                this.cilovaZonaData.souradniceTextFake.destroy();
-                this.cilovaZonaData.souradniceTextFake = null;
-            }
-            if (this.cilovaZonaData.souradniceTextFinal) {
-                this.tweens.add({
-                    targets: this.cilovaZonaData.souradniceTextFinal,
-                    alpha: 1,
-                    duration: 800,
-                    ease: 'Power2'
-                });
-                if (isWebGL && this.cilovaZonaData.blurFx) {
-                    this.cilovaZonaData.souradniceTextFinal.postFX.remove(this.cilovaZonaData.blurFx);
-                    this.cilovaZonaData.blurFx = null;
-                }
+    shouldCompleteGame(vzdalenostStredu, tolerance, velocityX) {
+        return vzdalenostStredu <= tolerance && velocityX <= 5 && !this.hraDokoncena;
+    }
+
+    handleGameCompletion(isWebGL) {
+        this.spustDokonceniHry();
+        this.bedna.body.setImmovable(true);
+        this.bedna.body.setVelocity(0, 0);
+        this.chlapik.setVelocityX(0);
+        if (this.cilovaZonaData.souradniceTextFake) {
+            this.cilovaZonaData.souradniceTextFake.destroy();
+            this.cilovaZonaData.souradniceTextFake = null;
+        }
+        if (this.cilovaZonaData.souradniceTextFinal) {
+            this.tweens.add({
+                targets: this.cilovaZonaData.souradniceTextFinal,
+                alpha: 1,
+                duration: 800,
+                ease: 'Power2'
+            });
+            if (isWebGL && this.cilovaZonaData.blurFx) {
+                this.cilovaZonaData.souradniceTextFinal.postFX.remove(this.cilovaZonaData.blurFx);
+                this.cilovaZonaData.blurFx = null;
             }
         }
+    }
+
+    handleMovement() {
         const jeKolizeSBednou = Phaser.Geom.Intersects.RectangleToRectangle(
             this.chlapik.getBounds(), this.bedna.getBounds()
         );
@@ -339,21 +394,28 @@ export default class GameFinal extends Phaser.Scene {
             this.chlapik.setVelocityX(0);
             this.chlapikAnimace.play('stoji', true);
         }
+    }
+
+    updateStopky() {
         if (this.stopkyBezi) {
             this.runningTime = (this.time.now - this.startTime) / 1000;
             this.stopkyText.setText(this.formatCas(this.runningTime));
         }
+    }
+
+    checkTeleportation() {
         const vzdalenostZaZonou = this.bedna.body.center.x - this.cilovaZonaData.zelenaZonaObjekt.x;
         if (!this.hraDokoncena && vzdalenostZaZonou > 200 && !this.teleportaceBezi) {
             this.spustTeleportaci();
         }
+    }
 
-        if (this.chlapik && this.chlapik.body && !this.hraDokoncena) {
+    updateBackgroundScroll() {
+        if (this.chlapik?.body && !this.hraDokoncena) {
             if (this.chlapik.body.velocity.x !== 0) {
                 this.background.tilePositionX -= (this.chlapik.body.velocity.x * 0.003) * (-1);
             }
         }
-
     }
 
     formatCas(cas) {
