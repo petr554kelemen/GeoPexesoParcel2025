@@ -1,3 +1,6 @@
+// Globální nastavení DEBUG režimu
+window.DEBUG_MODE = false; // Nastavte na true pro debug výpisy
+
 import Boot from './scenes/Boot';
 import Game from './scenes/Game';
 import GameFinal from './scenes/GameFinal';

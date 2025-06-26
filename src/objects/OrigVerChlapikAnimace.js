@@ -1,5 +1,6 @@
 // ChlapikAnimace.js
 import Phaser from 'phaser'; // Důležité pro typování a některé funkce
+import { debugLog, debugWarn } from '../utils/debug.js';
 
 class ChlapikAnimace {
     /**
@@ -55,10 +56,10 @@ class ChlapikAnimace {
 
     play(animationKey, ignoreIfPlaying = false) {
         if (this.animaceAtlasy.hasOwnProperty(animationKey)) {
-            console.log(`Přehrávám animaci: ${animationKey}, aktuální textura: ${this.sprite.texture.key}`);
+            debugLog(`Přehrávám animaci: ${animationKey}, aktuální textura: ${this.sprite.texture.key}`);
             this.sprite.play(animationKey, ignoreIfPlaying);
         } else {
-            console.warn(`Animace s klíčem '${animationKey}' není definována.`);
+            debugWarn(`Animace s klíčem '${animationKey}' není definována.`);
         }
     }
 

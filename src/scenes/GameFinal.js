@@ -33,13 +33,11 @@
  * Výstup: Zobrazení souřadnic / dokončení hry / možnost restartu
  */
 
-window.DEBUG_MODE = false;
-
 import Phaser from 'phaser';
 import Napoveda from './UI/napoveda.js';
 import ChlapikAnimace from '../objects/ChlapikAnimace.js';
-import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape"; // <-- přidat
-import { getSafeZones, showSafeZonesDebug, positionSafely, isPositionSafe } from "../utils/safeZones.js"; // <-- NOVÉ
+import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape";
+import { getSafeZones, showSafeZonesDebug, positionSafely, isPositionSafe } from "../utils/safeZones.js";
 
 export default class GameFinal extends Phaser.Scene {
     constructor() {

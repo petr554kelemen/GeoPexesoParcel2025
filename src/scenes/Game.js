@@ -1,6 +1,6 @@
 'use strict'
 import { BLUE_BUTTON_STYLE } from "../objects/buttons";
-import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape"; // <-- přidat
+import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape";
 
 export default class Game extends Phaser.Scene {
     constructor() {
