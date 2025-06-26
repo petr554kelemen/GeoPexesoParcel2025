@@ -33,7 +33,7 @@ export default class Game extends Phaser.Scene {
         //return;
 
         // Přidání fullscreen tlačítka a kontroly landscape (pouze Android)
-        addFullscreenAndLandscape(this, 'fullscreenIcon');
+        addFullscreenAndLandscape(this, 'fullscreen');
 
         // Pozadí
         const background = this.add.image(width / 2, height / 2, 'backgroundGame');

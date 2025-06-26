@@ -39,6 +39,7 @@ import Phaser from 'phaser';
 import Napoveda from './UI/napoveda.js';
 import ChlapikAnimace from '../objects/ChlapikAnimace.js';
 import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape"; // <-- přidat
+import { getSafeZones, showSafeZonesDebug, positionSafely, isPositionSafe } from "../utils/safeZones.js"; // <-- NOVÉ
 
 export default class GameFinal extends Phaser.Scene {
     constructor() {
@@ -58,6 +59,11 @@ export default class GameFinal extends Phaser.Scene {
         this.souradniceZastupne = `N 50°XX.XXX\nE 017°XX.XXX`;
         this.locale = null;
         this.textsByLocale = null;
+        this.safeZones = null; // <-- NOVÉ: safe zones cache
+        this.debugMode = false; // <-- NOVÉ: debug režim - nastavte na true pro ladění!
+        
+        // RYCHLÝ DEBUG TOGGLE: Zapnout při vývoji, vypnout pro produkci
+        // this.debugMode = true; // <-- odkomentujte pro zobrazení safe zones
     }
 
     getLocaleTexts() {
@@ -108,6 +114,21 @@ export default class GameFinal extends Phaser.Scene {
         this.locale = this.getLocaleTexts();
         this.textsByLocale = this.getTextsByLocale(this.locale);
 
+        // === INICIALIZACE SAFE ZONES ===
+        this.safeZones = getSafeZones(this, {
+            // Můžete přepsat výchozí marginy podle potřeby
+            mobile: { top: 70, bottom: 100, left: 20, right: 20 }
+        });
+        
+        // DEBUG: Zobrazení safe zones (nastavte na true pro ladění)
+        if (this.debugMode) {
+            this.debugOverlay = showSafeZonesDebug(this, this.safeZones, {
+                showMargins: true,
+                showGrid: true,
+                alpha: 0.2
+            });
+        }
+
         // === MINIMALISTICKÝ REŽIM: Pouze souřadnice ===
         if (this.preskocIntro) {
             this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0xffffff, 0.98);
@@ -122,14 +143,13 @@ export default class GameFinal extends Phaser.Scene {
             }).setOrigin(0.5);
 
             // Lokalizované tlačítko zpět/hrát znovu
-            const btn = this.add.text(
-                this.scale.width / 2,
-                this.scale.height / 2 + 120,
-                this.textsByLocale.back, // <-- lokalizovaný text
-                {
-                    fontSize: 36, color: "#444", backgroundColor: "#fff", padding: { x: 24, y: 10 }
-                }
-            ).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            const btn = this.add.text(0, 0, this.textsByLocale.back, {
+                fontSize: 36, color: "#444", backgroundColor: "#fff", padding: { x: 24, y: 10 }
+            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            
+            // Použití safe zones pro pozicionování
+            positionSafely(btn, 'bottomCenter', this.safeZones, { x: 0, y: -20 });
+            
             btn.on('pointerdown', () => {
                 localStorage.removeItem('cilSplnen');
                 this.scene.start('Game');
@@ -148,18 +168,23 @@ export default class GameFinal extends Phaser.Scene {
         this.stopkyBezi = true;
 
         // Přidání fullscreen tlačítka a kontroly landscape (pouze Android)
-        addFullscreenAndLandscape(this, 'fullscreenIcon');
+        addFullscreenAndLandscape(this, 'fullscreen');
     }
 
     initStopky() {
         this.startTime = 0;
         this.runningTime = 0;
         this.stopkyBezi = false;
-        this.stopkyText = this.add.text(this.cameras.main.width - 20, 20, "0:00:00", {
+        
+        // BEZPEČNÉ umístění stopek
+        this.stopkyText = this.add.text(0, 0, "0:00:00", {
             font: '24px Arial',
             fill: '#fff',
             align: 'right'
         }).setOrigin(1, 0).setScrollFactor(0);
+        
+        // Použití safe zones
+        positionSafely(this.stopkyText, 'topRight', this.safeZones, { x: -10, y: 5 });
     }
 
     initChlapik() {
@@ -218,18 +243,36 @@ export default class GameFinal extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.leftPressed = false;
         this.rightPressed = false;
+        
         const buttonSize = 64;
-        const buttonY = this.cameras.main.height - buttonSize / 2 - 40;
-        this.buttonLeft = this.add.image(buttonSize / 2 + 40, buttonY, 'arrow')
-            .setDisplaySize(64, 64)
+        
+        // BEZPEČNÉ umístění ovládacích tlačítek
+        this.buttonLeft = this.add.image(0, 0, 'arrow')
+            .setDisplaySize(buttonSize, buttonSize)
             .setAlpha(1).setInteractive().setScrollFactor(0)
             .setFlipX(true);
+        
+        this.buttonRight = this.add.image(0, 0, 'arrow')
+            .setDisplaySize(buttonSize, buttonSize)
+            .setAlpha(1).setInteractive().setScrollFactor(0);
+        
+        // Použití safe zones pro pozicování
+        positionSafely(this.buttonLeft, 'bottomLeft', this.safeZones, { x: 40, y: -40 });
+        positionSafely(this.buttonRight, 'bottomRight', this.safeZones, { x: -40, y: -40 });
+        
+        // KONTROLA: Varování pokud jsou tlačítka mimo safe zone
+        if (this.debugMode) {
+            const leftSafe = isPositionSafe(this.buttonLeft.x, this.buttonLeft.y, this.safeZones);
+            const rightSafe = isPositionSafe(this.buttonRight.x, this.buttonRight.y, this.safeZones);
+            
+            if (!leftSafe) console.warn('⚠️ Left button may be hidden by UI elements!');
+            if (!rightSafe) console.warn('⚠️ Right button may be hidden by UI elements!');
+        }
+        
+        // ...existing event handlers...
         this.buttonLeft.on('pointerdown', () => this.leftPressed = true);
         this.buttonLeft.on('pointerup', () => this.leftPressed = false);
         this.buttonLeft.on('pointerout', () => this.leftPressed = false);
-        this.buttonRight = this.add.image(this.cameras.main.width - buttonSize / 2 - 40, buttonY, 'arrow')
-            .setDisplaySize(64, 64)
-            .setAlpha(1).setInteractive().setScrollFactor(0);
         this.buttonRight.on('pointerdown', () => this.rightPressed = true);
         this.buttonRight.on('pointerup', () => this.rightPressed = false);
         this.buttonRight.on('pointerout', () => this.rightPressed = false);
