@@ -1,6 +1,7 @@
 /**
  * Přidá fullscreen tlačítko do Phaser scény (pouze na Androidu)
  * a overlay s výzvou k otočení zařízení do landscape na všech mobilních zařízeních.
+ * Tlačítko umožňuje přepínání mezi fullscreen a windowed režimem a zůstává viditelné v obou stavech.
  * @param {Phaser.Scene} scene - instance Phaser scény
  * @param {string} textureKey - klíč obrázku tlačítka (musí být načtený v preload)
  * @param {number} [x] - X pozice (výchozí: pravý horní roh s odsazením 20px)
@@ -22,14 +23,36 @@ export function addFullscreenAndLandscape(scene, textureKey, x, y, scale = 0.7) 
             .setDepth(1000)
             .setScale(scale);
 
-        btn.on('pointerup', () => {
-            if (!scene.scale.isFullscreen) {
+        // Funkce pro přepínání fullscreen režimu
+        const toggleFullscreen = () => {
+            if (scene.scale.isFullscreen) {
+                scene.scale.stopFullscreen();
+            } else {
                 scene.scale.startFullscreen();
             }
-        });
+        };
 
-        scene.scale.on('enterfullscreen', () => btn.setVisible(false));
-        scene.scale.on('leavefullscreen', () => btn.setVisible(true));
+        // Funkce pro aktualizaci vzhledu tlačítka podle stavu
+        const updateButtonAppearance = () => {
+            if (scene.scale.isFullscreen) {
+                // Ve fullscreen - tlačítko je trochu průhlednější (indikuje možnost vypnutí)
+                btn.setAlpha(0.7);
+                btn.setTint(0xffcccc); // Lehce červený nádech
+            } else {
+                // Mimo fullscreen - normální vzhled
+                btn.setAlpha(1);
+                btn.clearTint();
+            }
+        };
+
+        btn.on('pointerup', toggleFullscreen);
+
+        // Aktualizace vzhledu při změně fullscreen stavu
+        scene.scale.on('enterfullscreen', updateButtonAppearance);
+        scene.scale.on('leavefullscreen', updateButtonAppearance);
+        
+        // Počáteční nastavení vzhledu
+        updateButtonAppearance();
     }
 
     // Landscape overlay pro všechna mobilní zařízení
