@@ -2,14 +2,14 @@
     "section1": {
         "files": [
             {
+                "url": "assets/images/aspect_ratio_48dp.svg",
+                "type": "image",
+                "key": "fullscreen"
+            },
+            {
                 "url": "assets/images/freepikBackground.png",
                 "type": "image",
                 "key": "backgroundGame"
-            },
-            {
-                "url": "assets/images/image_arrow_up_24dp.png",
-                "type": "image",
-                "key": "fullscreen"
             },
             {
                 "url": "assets/logo.png",

@@ -6,16 +6,25 @@
  * @param {string} textureKey - klíč obrázku tlačítka (musí být načtený v preload)
  * @param {number} [x] - X pozice (výchozí: pravý horní roh s odsazením 20px)
  * @param {number} [y] - Y pozice (výchozí: 20px od horního okraje)
- * @param {number} [scale] - měřítko tlačítka (výchozí: 0.7)
+ * @param {number} [scale] - měřítko tlačítka (výchozí: 2.0 pro mobil)
  */
-export function addFullscreenAndLandscape(scene, textureKey, x, y, scale = 0.7) {
+export function addFullscreenAndLandscape(scene, textureKey, x, y, scale) {
     // Detekce mobilního zařízení
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
+    // Výchozí škála podle zařízení - větší pro mobilní dotyková zařízení
+    if (scale === undefined) {
+        scale = isMobile ? 2.0 : 1.2; // 48-60px pro mobil, ~29px pro desktop
+    }
+    
     // Fullscreen tlačítko pouze na Androidu
     if (/Android/i.test(navigator.userAgent)) {
-        const posX = x !== undefined ? x : scene.scale.width - 40;
-        const posY = y !== undefined ? y : 40;
+        // Pozice s ohledem na velikost ikony (větší ikona = více místa od okraje)
+        const iconSize = 24 * scale; // předpokládaná velikost původní ikony 24px
+        const margin = Math.max(20, iconSize / 2 + 10); // dynamický margin
+        
+        const posX = x !== undefined ? x : scene.scale.width - margin;
+        const posY = y !== undefined ? y : margin;
 
         const btn = scene.add.image(posX, posY, textureKey)
             .setInteractive({ useHandCursor: true })
