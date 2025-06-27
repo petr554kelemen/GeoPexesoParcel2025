@@ -139,7 +139,7 @@ export default class GameFinal extends Phaser.Scene {
         if (this.preskocIntro) {
             this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0xffffff, 0.98);
 
-            this.add.text(this.scale.width / 2, this.scale.height / 2 - 50, this.souradniceFinal, {
+            this.add.text(this.scale.width / 2, this.scale.height / 2 - 80, this.souradniceFinal, {
                 color: "#33ff33",
                 fontFamily: "DynaPuff, Arial, sans-serif",
                 fontSize: "90px",
@@ -148,11 +148,11 @@ export default class GameFinal extends Phaser.Scene {
                 align: "center"
             }).setOrigin(0.5);
 
-            // Tlačítko pro kopírování souřadnic
+            // Tlačítko pro kopírování souřadnic - níže od textu
             const copyBtn = createCopyButton(
                 this, 
                 this.scale.width / 2, 
-                this.scale.height / 2 + 50, 
+                this.scale.height / 2 + 20, 
                 this.souradniceFinal, 
                 this.textsByLocale.copy || 'Kopírovat',
                 { fontSize: '32px', color: '#fff', backgroundColor: '#007acc', padding: { x: 20, y: 12 } }
@@ -260,17 +260,21 @@ export default class GameFinal extends Phaser.Scene {
         this.leftPressed = false;
         this.rightPressed = false;
         
-        const buttonSize = 64;
+        // Detekce mobilního zařízení pro dynamickou velikost tlačítek
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const buttonSize = isMobile ? 96 : 80; // Větší na mobilu pro lepší ovládání
         
         // BEZPEČNÉ umístění ovládacích tlačítek
         this.buttonLeft = this.add.image(0, 0, 'arrow')
             .setDisplaySize(buttonSize, buttonSize)
-            .setAlpha(1).setInteractive().setScrollFactor(0)
-            .setFlipX(true);
+            .setAlpha(1).setInteractive({ useHandCursor: true }).setScrollFactor(0)
+            .setFlipX(true)
+            .setDepth(1000); // Stejná hloubka jako fullscreen tlačítko
         
         this.buttonRight = this.add.image(0, 0, 'arrow')
             .setDisplaySize(buttonSize, buttonSize)
-            .setAlpha(1).setInteractive().setScrollFactor(0);
+            .setAlpha(1).setInteractive({ useHandCursor: true }).setScrollFactor(0)
+            .setDepth(1000); // Stejná hloubka jako fullscreen tlačítko
         
         // Použití safe zones pro pozicování
         positionSafely(this.buttonLeft, 'bottomLeft', this.safeZones, { x: 40, y: -40 });
@@ -285,13 +289,32 @@ export default class GameFinal extends Phaser.Scene {
             if (!rightSafe) console.warn('⚠️ Right button may be hidden by UI elements!');
         }
         
-        // ...existing event handlers...
-        this.buttonLeft.on('pointerdown', () => this.leftPressed = true);
-        this.buttonLeft.on('pointerup', () => this.leftPressed = false);
-        this.buttonLeft.on('pointerout', () => this.leftPressed = false);
-        this.buttonRight.on('pointerdown', () => this.rightPressed = true);
-        this.buttonRight.on('pointerup', () => this.rightPressed = false);
-        this.buttonRight.on('pointerout', () => this.rightPressed = false);
+        // Vylepšené event handlers s vizuálním feedbackem
+        this.buttonLeft.on('pointerdown', () => {
+            this.leftPressed = true;
+            this.buttonLeft.setAlpha(0.7).setTint(0xccffcc); // Průhlednost + zelený nádech
+        });
+        this.buttonLeft.on('pointerup', () => {
+            this.leftPressed = false;
+            this.buttonLeft.setAlpha(1).clearTint(); // Návrat na normální vzhled
+        });
+        this.buttonLeft.on('pointerout', () => {
+            this.leftPressed = false;
+            this.buttonLeft.setAlpha(1).clearTint(); // Návrat na normální vzhled
+        });
+        
+        this.buttonRight.on('pointerdown', () => {
+            this.rightPressed = true;
+            this.buttonRight.setAlpha(0.7).setTint(0xccffcc); // Průhlednost + zelený nádech
+        });
+        this.buttonRight.on('pointerup', () => {
+            this.rightPressed = false;
+            this.buttonRight.setAlpha(1).clearTint(); // Návrat na normální vzhled
+        });
+        this.buttonRight.on('pointerout', () => {
+            this.rightPressed = false;
+            this.buttonRight.setAlpha(1).clearTint(); // Návrat na normální vzhled
+        });
     }
 
     spustDokonceniHry() {
