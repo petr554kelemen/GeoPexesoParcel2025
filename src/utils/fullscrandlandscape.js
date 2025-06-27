@@ -21,7 +21,7 @@ export function addFullscreenAndLandscape(scene, textureKey, x, y, scale) {
     if (/Android/i.test(navigator.userAgent)) {
         // Pozice s ohledem na velikost ikony (větší ikona = více místa od okraje)
         const iconSize = 24 * scale; // předpokládaná velikost původní ikony 24px
-        const margin = Math.max(20, iconSize / 2 + 10); // dynamický margin
+        const margin = Math.max(30, iconSize / 2 + 15); // větší margin pro větší tlačítko
         
         const posX = x !== undefined ? x : scene.scale.width - margin;
         const posY = y !== undefined ? y : margin;

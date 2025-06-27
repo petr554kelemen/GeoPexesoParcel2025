@@ -70,7 +70,11 @@ export default class Game extends Phaser.Scene {
         // >>> TADY JE ROZHODOVÁNÍ <<<
         const cilSplnen = localStorage.getItem('cilSplnen') === '1';
         if (cilSplnen) {
-            this.showStartBubble(null, true, () => {
+            this.showStartBubble(() => {
+                // Callback pro tlačítko "Souřadnice" - přejde na GameFinal pro zobrazení souřadnic
+                this.scene.start('GameFinal', { preskocIntro: true });
+            }, true, () => {
+                // Callback pro tlačítko "Hrát znovu"
                 localStorage.removeItem('cilSplnen');
                 this.showStartBubble(() => {
                     this.spawnCards(values);

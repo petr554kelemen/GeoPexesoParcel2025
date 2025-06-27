@@ -38,6 +38,7 @@ import Napoveda from './UI/napoveda.js';
 import ChlapikAnimace from '../objects/ChlapikAnimace.js';
 import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape";
 import { getSafeZones, showSafeZonesDebug, positionSafely, isPositionSafe } from "../utils/safeZones.js";
+import { createCopyButton } from "../utils/clipboard.js";
 import { fadeToScene, initSceneWithFade } from "../utils/sceneTransitions.js";
 
 export default class GameFinal extends Phaser.Scene {
@@ -75,13 +76,16 @@ export default class GameFinal extends Phaser.Scene {
     getTextsByLocale(locale) {
         return {
             cs: {
-                back: "↩️ Hrát znovu"
+                back: "↩️ Hrát znovu",
+                copy: "📋 Kopírovat"
             },
             pl: {
-                back: "↩️ Zagraj ponownie"
+                back: "↩️ Zagraj ponownie",
+                copy: "📋 Kopiuj"
             },
             en: {
-                back: "↩️ Play again"
+                back: "↩️ Play again",
+                copy: "📋 Copy"
             }
         }[locale];
     }
@@ -135,7 +139,7 @@ export default class GameFinal extends Phaser.Scene {
         if (this.preskocIntro) {
             this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0xffffff, 0.98);
 
-            this.add.text(this.scale.width / 2, this.scale.height / 2, this.souradniceFinal, {
+            this.add.text(this.scale.width / 2, this.scale.height / 2 - 50, this.souradniceFinal, {
                 color: "#33ff33",
                 fontFamily: "DynaPuff, Arial, sans-serif",
                 fontSize: "90px",
@@ -143,6 +147,16 @@ export default class GameFinal extends Phaser.Scene {
                 strokeThickness: 3,
                 align: "center"
             }).setOrigin(0.5);
+
+            // Tlačítko pro kopírování souřadnic
+            const copyBtn = createCopyButton(
+                this, 
+                this.scale.width / 2, 
+                this.scale.height / 2 + 50, 
+                this.souradniceFinal, 
+                this.textsByLocale.copy || 'Kopírovat',
+                { fontSize: '32px', color: '#fff', backgroundColor: '#007acc', padding: { x: 20, y: 12 } }
+            );
 
             // Lokalizované tlačítko zpět/hrát znovu
             const btn = this.add.text(0, 0, this.textsByLocale.back, {
@@ -308,6 +322,18 @@ export default class GameFinal extends Phaser.Scene {
                 this.cilovaZonaData.blurFx = null;
             }
             this.cilovaZonaData.souradniceTextFinal.setShadow(0, 0, "#000", 0, false, false);
+            
+            // Přidat tlačítko pro kopírování po dokončení hry
+            this.time.delayedCall(1000, () => {
+                const copyBtn = createCopyButton(
+                    this,
+                    this.scale.width / 2,
+                    this.cilovaZonaData.souradniceTextFinal.y + 80,
+                    this.souradniceFinal,
+                    this.textsByLocale.copy || 'Kopírovat',
+                    { fontSize: '28px', color: '#fff', backgroundColor: '#007acc', padding: { x: 16, y: 10 } }
+                );
+            });
         }
         // Pokud se načítá pouze finální souřadnice (preskocIntro), možná potřebuješ inicializovat text:
         if (!this.cilovaZonaData) {
