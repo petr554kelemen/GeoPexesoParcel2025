@@ -65,7 +65,7 @@ export default class Game extends Phaser.Scene {
 
         // Předdefinované hodnoty karet
         let values = Array.from({ length: 12 }, (_, i) => `card${i + 1}`).flatMap(v => [v, v]);
-        // Phaser.Utils.Array.Shuffle(values); // DEV: Vypnuto pro rychlé testování - karty jsou seřazené
+        Phaser.Utils.Array.Shuffle(values);
 
         // >>> TADY JE ROZHODOVÁNÍ <<<
         const cilSplnen = localStorage.getItem('cilSplnen') === '1';
@@ -352,8 +352,8 @@ export default class Game extends Phaser.Scene {
             });
         });
 
-        // Kontrola vítězství - DEV: snížená obtížnost pro testování přechodů
-        if (this.cards.getChildren().length <= 18) { // původně 2, dočasně 18 pro rychlé testování
+        // Kontrola vítězství
+        if (this.cards.getChildren().length <= 2) {
             // Zastavení časovače při vítězství
             if (this.heartTimer) {
                 this.heartTimer.destroy();

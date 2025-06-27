@@ -32,17 +32,12 @@ export function addFullscreenAndLandscape(scene, textureKey, x, y, scale) {
             .setDepth(1000)
             .setScale(scale);
 
-        console.log(`🎮 Fullscreen tlačítko vytvořeno na pozici: ${posX}, ${posY}, scale: ${scale}`);
-
         // Funkce pro přepínání fullscreen režimu
         const toggleFullscreen = () => {
-            console.log(`🔄 Toggle fullscreen: aktuální stav = ${scene.scale.isFullscreen}`);
             if (scene.scale.isFullscreen) {
                 scene.scale.stopFullscreen();
-                console.log('📱 Vypínám fullscreen');
             } else {
                 scene.scale.startFullscreen();
-                console.log('🖥️ Zapínám fullscreen');
             }
         };
 
