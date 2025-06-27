@@ -6,6 +6,7 @@
   "browserslist": "> 0.25%, last 2 versions, not dead",
   "scripts": {
     "dev": "node log.js dev & parcel index.html --no-cache --config ./parcel/.parcel.dev --open",
+    "dev-server": "node log.js dev & parcel index.html --no-cache --config ./parcel/.parcel.dev --host 0.0.0.0 --port 1234",
     "build": "node log.js build & parcel build index.html --dist-dir dist --public-url ./ --no-source-maps --log-level error --config ./parcel/.parcel.prod",
     "dev-nolog": "parcel index.html --no-cache --config ./parcel/.parcel.dev --open",
     "build-nolog": "parcel build index.html --dist-dir dist --public-url ./ --no-source-maps --log-level error --config ./parcel/.parcel.prod"

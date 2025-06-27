@@ -1,6 +1,7 @@
 'use strict'
 import { BLUE_BUTTON_STYLE } from "../objects/buttons";
 import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape";
+import { fadeToScene, initSceneWithFade } from "../utils/sceneTransitions.js";
 
 export default class Game extends Phaser.Scene {
     constructor() {
@@ -24,6 +25,9 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
+        // Fade in efekt při spuštění scény
+        initSceneWithFade(this);
+        
         const { width, height } = this.scale;
         //localStorage.setItem('cilSplnen', '1'); // PRO LADĚNÍ - po dokončení zakomentuj nebo smaž
         //localStorage.removeItem('cilSplnen');
@@ -61,7 +65,7 @@ export default class Game extends Phaser.Scene {
 
         // Předdefinované hodnoty karet
         let values = Array.from({ length: 12 }, (_, i) => `card${i + 1}`).flatMap(v => [v, v]);
-        Phaser.Utils.Array.Shuffle(values);
+        // Phaser.Utils.Array.Shuffle(values); // DEV: Vypnuto pro rychlé testování - karty jsou seřazené
 
         // >>> TADY JE ROZHODOVÁNÍ <<<
         const cilSplnen = localStorage.getItem('cilSplnen') === '1';
@@ -344,9 +348,14 @@ export default class Game extends Phaser.Scene {
             });
         });
 
-        // Kontrola vítězství
-        if (this.cards.getChildren().length <= 2) {
-            this.scene.start('GameFinal');
+        // Kontrola vítězství - DEV: snížená obtížnost pro testování přechodů
+        if (this.cards.getChildren().length <= 18) { // původně 2, dočasně 18 pro rychlé testování
+            // Zastavení časovače při vítězství
+            if (this.heartTimer) {
+                this.heartTimer.destroy();
+                this.heartTimer = null;
+            }
+            fadeToScene(this, 'GameFinal');
         }
     }
 

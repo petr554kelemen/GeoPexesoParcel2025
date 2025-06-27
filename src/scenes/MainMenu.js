@@ -1,6 +1,7 @@
 /* START OF COMPILED CODE */
 
 /* START-USER-IMPORTS */
+import { fadeToScene, initSceneWithFade } from "../utils/sceneTransitions.js";
 /* END-USER-IMPORTS */
 
 export default class MainMenu extends Phaser.Scene {
@@ -39,13 +40,16 @@ export default class MainMenu extends Phaser.Scene {
 
 	// Write your code here
 	create() {
+		// Fade in efekt při spuštění scény
+		initSceneWithFade(this);
+		
 		this.add.image(this.cameras.main.centerX, this.cameras.main.centerY, 'backgroundGame');
 
 		this.editorCreate();
 
 		this.input.once('pointerdown', () => {
 
-			this.scene.start('Game');
+			fadeToScene(this, 'Game');
 
 		});
 	}

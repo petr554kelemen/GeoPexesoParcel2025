@@ -38,6 +38,7 @@ import Napoveda from './UI/napoveda.js';
 import ChlapikAnimace from '../objects/ChlapikAnimace.js';
 import { addFullscreenAndLandscape } from "../utils/fullscrandlandscape";
 import { getSafeZones, showSafeZonesDebug, positionSafely, isPositionSafe } from "../utils/safeZones.js";
+import { fadeToScene, initSceneWithFade } from "../utils/sceneTransitions.js";
 
 export default class GameFinal extends Phaser.Scene {
     constructor() {
@@ -109,6 +110,9 @@ export default class GameFinal extends Phaser.Scene {
     }
 
     create() {
+        // Fade in efekt při spuštění scény
+        initSceneWithFade(this);
+        
         this.locale = this.getLocaleTexts();
         this.textsByLocale = this.getTextsByLocale(this.locale);
 
@@ -150,7 +154,7 @@ export default class GameFinal extends Phaser.Scene {
             
             btn.on('pointerdown', () => {
                 localStorage.removeItem('cilSplnen');
-                this.scene.start('Game');
+                fadeToScene(this, 'Game');
             });
             return;
         }
