@@ -148,11 +148,12 @@ export default class GameFinal extends Phaser.Scene {
                 align: "center"
             }).setOrigin(0.5);
 
-            // Tlačítko pro kopírování souřadnic - níže od textu
+            // Tlačítko pro kopírování souřadnic - doprostřed mezi textem a spodním okrajem
+            const copyBtnY = this.scale.height * 0.75; // 75% výšky obrazovky = doprostřed
             const copyBtn = createCopyButton(
                 this, 
                 this.scale.width / 2, 
-                this.scale.height / 2 + 20, 
+                copyBtnY, 
                 this.souradniceFinal, 
                 this.textsByLocale.copy || 'Kopírovat',
                 { fontSize: '32px', color: '#fff', backgroundColor: '#007acc', padding: { x: 20, y: 12 } }
@@ -170,6 +171,10 @@ export default class GameFinal extends Phaser.Scene {
                 localStorage.removeItem('cilSplnen');
                 fadeToScene(this, 'Game');
             });
+
+            // Přidání fullscreen tlačítka s toggle funkcí i v minimalistickém režimu
+            addFullscreenAndLandscape(this, 'fullscreen', this.scale.width - 40, 40);
+            
             return;
         }
 
