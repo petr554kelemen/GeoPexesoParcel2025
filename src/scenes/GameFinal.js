@@ -173,7 +173,7 @@ export default class GameFinal extends Phaser.Scene {
             });
 
             // Přidání fullscreen tlačítka s toggle funkcí i v minimalistickém režimu
-            addFullscreenAndLandscape(this, 'fullscreen', this.scale.width - 40, 40);
+            addFullscreenAndLandscape(this, 'fullscreen');
             
             return;
         }
@@ -188,11 +188,8 @@ export default class GameFinal extends Phaser.Scene {
         this.startTime = this.time.now;
         this.stopkyBezi = true;
 
-        // Přidání fullscreen tlačítka a kontroly landscape (pouze Android)
-        // Pozicování: na stejné Y úrovni jako ovládací tlačítka, vycentrované X
-        const fullscreenX = this.scale.width / 2; // Střed obrazovky
-        const fullscreenY = this.safeZones.bottom + 40; // Stejná Y pozice jako ovládací tlačítka
-        addFullscreenAndLandscape(this, 'fullscreen', fullscreenX, fullscreenY);
+        // Přidání fullscreen tlačítka a kontroly landscape 
+        addFullscreenAndLandscape(this, 'fullscreen');
     }
 
     initStopky() {
@@ -364,6 +361,45 @@ export default class GameFinal extends Phaser.Scene {
                     this.textsByLocale.copy || 'Kopírovat',
                     { fontSize: '28px', color: '#fff', backgroundColor: '#007acc', padding: { x: 16, y: 10 } }
                 );
+            });
+
+            // Zobrazení "Konec hry!" po 5 sekundách - spodní půlka obrazovky
+            this.time.delayedCall(5000, () => {
+                const konecHryText = this.add.text(
+                    this.scale.width / 2,
+                    this.scale.height * 0.75, // 75% výšky = spodní půlka
+                    "Konec hry!",
+                    {
+                        fontSize: '48px',
+                        color: '#ffdd00',
+                        fontFamily: 'DynaPuff, Arial, sans-serif',
+                        stroke: '#333333',
+                        strokeThickness: 4,
+                        align: 'center'
+                    }
+                ).setOrigin(0.5).setAlpha(0);
+
+                // Animace objevení s efektem
+                this.tweens.add({
+                    targets: konecHryText,
+                    alpha: 1,
+                    scaleX: { from: 0.5, to: 1.2 },
+                    scaleY: { from: 0.5, to: 1.2 },
+                    duration: 800,
+                    ease: 'Bounce.easeOut',
+                    onComplete: () => {
+                        // Lehké pulzování pro přitažení pozornosti
+                        this.tweens.add({
+                            targets: konecHryText,
+                            scaleX: 1.1,
+                            scaleY: 1.1,
+                            duration: 1000,
+                            ease: 'Sine.easeInOut',
+                            yoyo: true,
+                            repeat: -1
+                        });
+                    }
+                });
             });
         }
         // Pokud se načítá pouze finální souřadnice (preskocIntro), možná potřebuješ inicializovat text:
