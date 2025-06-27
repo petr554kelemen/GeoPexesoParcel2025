@@ -184,7 +184,10 @@ export default class GameFinal extends Phaser.Scene {
         this.stopkyBezi = true;
 
         // Přidání fullscreen tlačítka a kontroly landscape (pouze Android)
-        addFullscreenAndLandscape(this, 'fullscreen');
+        // Pozicování: na stejné Y úrovni jako ovládací tlačítka, vycentrované X
+        const fullscreenX = this.scale.width / 2; // Střed obrazovky
+        const fullscreenY = this.safeZones.bottom + 40; // Stejná Y pozice jako ovládací tlačítka
+        addFullscreenAndLandscape(this, 'fullscreen', fullscreenX, fullscreenY);
     }
 
     initStopky() {
@@ -394,8 +397,9 @@ export default class GameFinal extends Phaser.Scene {
             duration: 600,
             onComplete: () => {
                 this.background.tilePositionX = 0;
-                this.chlapik.setPosition(50, this.posChlapikY);
-                this.bedna.setPosition(this.chlapik.x + 100, this.posBednaY);
+                // Oprava: používat stejné pozice jako při inicializaci (+40 na Y ose)
+                this.chlapik.setPosition(50, this.posChlapikY + 40);
+                this.bedna.setPosition(this.chlapik.x + 100, this.posBednaY + 40);
                 this.chlapik.setAlpha(1);
                 this.bedna.setAlpha(1);
                 this.bedna.body.setVelocity(0, 0);
